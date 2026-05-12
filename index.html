@@ -128,7 +128,7 @@
       <div class="hero-side glass">
         <div>
           <div class="status"><span><i class="dot"></i>Sheet connected</span><span id="updatedAt">Loading...</span></div>
-          <h2 style="font-size:26px;margin-top:18px">Target: <span id="targetHero">93%</span></h2>
+          <h2 style="font-size:26px;margin-top:18px">Target: <span id="targetHero">92%</span></h2>
           <p class="subtitle">Dashboard reads the published Google Sheet CSV export. Keep your sheet public/viewable or publish to web.</p>
         </div>
         <div class="pill" id="sourceInfo">Source: Dashboard tab</div>
@@ -188,7 +188,7 @@
   <script>
     const SHEET_ID = "19cFrK8XV_vua3YUht46TWH4ki_nTZ2S-3fpbo66zRXI";
     const DASHBOARD_GID = "1096640373";
-    const TARGET = 93;
+    const TARGET = num(rawRows[1][1]);
     const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${DASHBOARD_GID}`;
 
     let rawRows = [];
