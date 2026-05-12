@@ -3,385 +3,205 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CFS Smart Audit Dashboard</title>
+  <title>CFS Smart Dashboard | Raw Data</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <style>
-    :root {
-      --bg: #070b14;
-      --panel: rgba(17, 24, 39, 0.82);
-      --panel-2: rgba(30, 41, 59, 0.74);
-      --text: #e5e7eb;
-      --muted: #94a3b8;
-      --accent: #38bdf8;
-      --accent-2: #22c55e;
-      --danger: #fb7185;
-      --warn: #f59e0b;
-      --border: rgba(148, 163, 184, 0.18);
-      --shadow: 0 24px 80px rgba(0,0,0,0.35);
-    }
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background:
-        radial-gradient(circle at top left, rgba(56, 189, 248, 0.22), transparent 34%),
-        radial-gradient(circle at top right, rgba(34, 197, 94, 0.14), transparent 28%),
-        var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
-    .wrap { max-width: 1440px; margin: 0 auto; padding: 28px; }
-    .hero {
-      display: grid;
-      grid-template-columns: 1.4fr 0.6fr;
-      gap: 18px;
-      align-items: stretch;
-      margin-bottom: 18px;
-    }
-    .glass {
-      background: linear-gradient(135deg, rgba(15, 23, 42, 0.92), rgba(15, 23, 42, 0.68));
-      border: 1px solid var(--border);
-      border-radius: 26px;
-      box-shadow: var(--shadow);
-      backdrop-filter: blur(18px);
-    }
-    .hero-main { padding: 28px; position: relative; overflow: hidden; }
-    .hero-main::after {
-      content: "";
-      position: absolute;
-      width: 260px;
-      height: 260px;
-      border-radius: 999px;
-      background: rgba(56, 189, 248, 0.12);
-      right: -90px;
-      top: -100px;
-      filter: blur(4px);
-    }
-    .eyebrow { color: var(--accent); font-size: 12px; text-transform: uppercase; letter-spacing: 0.22em; font-weight: 800; }
-    h1 { margin: 10px 0 8px; font-size: clamp(30px, 4vw, 56px); line-height: 1; letter-spacing: -0.05em; }
-    .subtitle { color: var(--muted); font-size: 15px; max-width: 760px; }
-    .hero-side { padding: 22px; display: flex; flex-direction: column; justify-content: space-between; gap: 14px; }
-    .status { display: flex; align-items: center; justify-content: space-between; gap: 10px; color: var(--muted); font-size: 13px; }
-    .dot { width: 10px; height: 10px; border-radius: 99px; background: var(--accent-2); box-shadow: 0 0 22px var(--accent-2); display: inline-block; margin-right: 8px; }
-    .controls { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px; }
-    input, select, button {
-      border: 1px solid var(--border);
-      background: rgba(15, 23, 42, 0.76);
-      color: var(--text);
-      border-radius: 14px;
-      padding: 11px 13px;
-      outline: none;
-      font: inherit;
-    }
-    input { min-width: 260px; flex: 1; }
-    button { cursor: pointer; transition: 0.18s ease; }
-    button:hover { transform: translateY(-1px); border-color: rgba(56, 189, 248, 0.58); }
-    .primary { background: linear-gradient(135deg, rgba(56,189,248,0.95), rgba(34,197,94,0.8)); color: #03101f; font-weight: 800; }
-    .grid { display: grid; gap: 16px; }
-    .kpis { grid-template-columns: repeat(6, minmax(0, 1fr)); margin-bottom: 16px; }
-    .card { padding: 18px; border-radius: 22px; background: var(--panel); border: 1px solid var(--border); box-shadow: 0 12px 38px rgba(0,0,0,0.18); }
-    .label { color: var(--muted); font-size: 12px; text-transform: uppercase; letter-spacing: 0.12em; font-weight: 750; }
-    .value { font-size: 30px; font-weight: 900; margin-top: 9px; letter-spacing: -0.04em; }
-    .hint { color: var(--muted); font-size: 12px; margin-top: 8px; }
-    .good { color: var(--accent-2); } .bad { color: var(--danger); } .warn { color: var(--warn); }
-    .charts { grid-template-columns: 1.15fr 0.85fr; margin-bottom: 16px; }
-    .wide { grid-template-columns: 1fr 1fr; margin-bottom: 16px; }
-    .section-title { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; gap: 12px; }
-    h2 { margin: 0; font-size: 18px; letter-spacing: -0.02em; }
-    .pill { color: var(--muted); font-size: 12px; border: 1px solid var(--border); padding: 6px 10px; border-radius: 999px; }
-    .insights { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 16px; }
-    .insight { padding: 16px; background: var(--panel-2); border: 1px solid var(--border); border-radius: 20px; }
-    .insight strong { display: block; margin-bottom: 5px; }
-    .insight span { color: var(--muted); font-size: 13px; }
-    table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    th, td { padding: 12px 10px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
-    th { color: var(--muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.12em; position: sticky; top: 0; background: #111827; z-index: 1; }
-    tbody tr:hover { background: rgba(56, 189, 248, 0.07); }
-    .table-wrap { max-height: 470px; overflow: auto; border-radius: 18px; border: 1px solid var(--border); }
-    .bar { height: 9px; border-radius: 999px; background: rgba(148, 163, 184, 0.18); overflow: hidden; min-width: 110px; }
-    .bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--danger), var(--warn), var(--accent-2)); }
-    .footer { color: var(--muted); text-align: center; font-size: 12px; padding: 22px 0 8px; }
-    .error { padding: 16px; border: 1px solid rgba(251,113,133,0.35); color: #fecdd3; background: rgba(127,29,29,0.25); border-radius: 18px; display: none; margin-bottom: 16px; }
-    @media (max-width: 1100px) { .kpis { grid-template-columns: repeat(3, 1fr); } .hero, .charts, .wide, .insights { grid-template-columns: 1fr; } }
-    @media (max-width: 640px) { .wrap { padding: 16px; } .kpis { grid-template-columns: 1fr 1fr; } input { min-width: 100%; } .value { font-size: 24px; } }
+    :root{--bg:#070b14;--panel:rgba(15,23,42,.88);--panel2:rgba(30,41,59,.76);--text:#e5e7eb;--muted:#94a3b8;--line:rgba(148,163,184,.18);--cyan:#38bdf8;--green:#22c55e;--red:#fb7185;--yellow:#f59e0b;--shadow:0 24px 80px rgba(0,0,0,.35)}
+    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(56,189,248,.24),transparent 32%),radial-gradient(circle at top right,rgba(34,197,94,.16),transparent 28%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1480px;margin:auto;padding:26px}.glass,.card{background:linear-gradient(135deg,rgba(15,23,42,.94),rgba(15,23,42,.68));border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);backdrop-filter:blur(18px)}.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:16px;margin-bottom:16px}.hero-main{padding:28px}.side{padding:22px}.eyebrow{color:var(--cyan);font-size:12px;text-transform:uppercase;letter-spacing:.22em;font-weight:900}h1{margin:10px 0 8px;font-size:clamp(30px,4vw,54px);line-height:1;letter-spacing:-.05em}h2{margin:0;font-size:18px}.sub{color:var(--muted);font-size:14px;line-height:1.55}.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}input,select,button{border:1px solid var(--line);background:rgba(15,23,42,.82);color:var(--text);border-radius:14px;padding:11px 13px;font:inherit;outline:none}input{min-width:210px}button{cursor:pointer}.primary{background:linear-gradient(135deg,var(--cyan),var(--green));color:#03101f;font-weight:900}.grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(8,minmax(0,1fr));margin-bottom:16px}.card{padding:18px}.label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:850}.value{font-size:28px;font-weight:950;margin-top:9px;letter-spacing:-.04em}.hint{color:var(--muted);font-size:12px;margin-top:8px}.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}.charts{grid-template-columns:1.15fr .85fr;margin-bottom:16px}.two{grid-template-columns:1fr 1fr;margin-bottom:16px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.pill{color:var(--muted);font-size:12px;border:1px solid var(--line);padding:6px 10px;border-radius:999px}.insights{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.insight{padding:16px;background:var(--panel2);border:1px solid var(--line);border-radius:20px}.insight strong{display:block;margin-bottom:5px}.insight span{color:var(--muted);font-size:13px;line-height:1.45}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.12em;position:sticky;top:0;background:#111827;z-index:1}tbody tr:hover{background:rgba(56,189,248,.07)}.table-wrap{max-height:460px;overflow:auto;border-radius:18px;border:1px solid var(--line)}.bar{height:9px;border-radius:999px;background:rgba(148,163,184,.18);overflow:hidden;min-width:110px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--yellow),var(--green))}.tabs{display:flex;gap:8px;margin:0 0 16px}.tab{padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(15,23,42,.72);cursor:pointer;color:var(--muted);font-weight:800}.tab.active{color:#03101f;background:linear-gradient(135deg,var(--cyan),var(--green))}.hidden{display:none}.error{display:none;margin-bottom:16px;padding:16px;border:1px solid rgba(251,113,133,.35);background:rgba(127,29,29,.24);color:#fecdd3;border-radius:18px}.footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 0 8px}@media(max-width:1150px){.hero,.charts,.two,.insights{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(4,1fr)}}@media(max-width:680px){.wrap{padding:15px}.kpis{grid-template-columns:1fr 1fr}input,select,button{width:100%}.value{font-size:23px}}
   </style>
 </head>
 <body>
-  <main class="wrap">
-    <section class="hero">
-      <div class="hero-main glass">
-        <div class="eyebrow">CFS Tracker 2026</div>
-        <h1>Smart Audit Dashboard</h1>
-        <p class="subtitle">Live Google Sheet based performance dashboard with KPI cards, CFS insights, agent ranking, TL/QA summary and export-ready data table.</p>
-        <div class="controls">
-          <input id="searchInput" placeholder="Search by Network ID or Name..." />
-          <select id="statusFilter">
-            <option value="all">All agents</option>
-            <option value="above">Above / equal target</option>
-            <option value="below">Below target</option>
-          </select>
-          <button class="primary" id="refreshBtn">Refresh Data</button>
-          <button id="exportBtn">Export CSV</button>
-        </div>
+<main class="wrap">
+  <section class="hero">
+    <div class="hero-main glass">
+      <div class="eyebrow">CFS Tracker 2026 • Raw Powered</div>
+      <h1>Smart CFS + NPS Dashboard</h1>
+      <p class="sub">All KPI, TL wise, QA wise, Agent wise and Date Wise summary are calculated directly from <b>NPS Raw</b>. No manual dashboard formula dependency.</p>
+      <div class="controls">
+        <select id="monthSelect"><option value="all">All months</option></select>
+        <input id="targetInput" type="number" step="0.01" value="93" title="Target CFS %" />
+        <input id="searchInput" placeholder="Search Agent / TL / QA / ID..." />
+        <select id="statusFilter"><option value="all">All</option><option value="above">Above target</option><option value="below">Below target</option></select>
+        <button class="primary" id="refreshBtn">Refresh</button>
+        <button id="exportBtn">Export Current Table</button>
       </div>
-      <div class="hero-side glass">
-        <div>
-          <div class="status"><span><i class="dot"></i>Sheet connected</span><span id="updatedAt">Loading...</span></div>
-          <h2 style="font-size:26px;margin-top:18px">Target: <span id="targetHero">92%</span></h2>
-          <p class="subtitle">Dashboard reads the published Google Sheet CSV export. Keep your sheet public/viewable or publish to web.</p>
-        </div>
-        <div class="pill" id="sourceInfo">Source: Dashboard tab</div>
-      </div>
-    </section>
+    </div>
+    <div class="side glass">
+      <div class="section-title"><h2>Live Status</h2><span class="pill">Auto refresh: 30 min</span></div>
+      <p class="sub"><span style="color:var(--green)">●</span> Source: Google Sheet → <b>NPS Raw</b><br/>Last refresh: <span id="updatedAt">Loading...</span><br/>Selected month: <b id="selectedMonthText">All</b></p>
+      <p class="sub">If data does not load, publish the sheet to web or keep it viewable with link.</p>
+    </div>
+  </section>
 
-    <div id="errorBox" class="error"></div>
+  <div id="errorBox" class="error"></div>
 
+  <div class="tabs">
+    <button class="tab active" data-view="dashboardView">Total Dashboard</button>
+    <button class="tab" data-view="dateView">Date Wise Data</button>
+  </div>
+
+  <section id="dashboardView">
     <section class="grid kpis">
-      <div class="card"><div class="label">Total Yes</div><div class="value" id="totalYes">-</div><div class="hint">CSAT / positive count</div></div>
-      <div class="card"><div class="label">Total No</div><div class="value" id="totalNo">-</div><div class="hint">DSAT / negative count</div></div>
-      <div class="card"><div class="label">Grand Total</div><div class="value" id="grandTotal">-</div><div class="hint">Total responses</div></div>
-      <div class="card"><div class="label">CFS %</div><div class="value" id="cfsPct">-</div><div class="hint">Current achievement</div></div>
-      <div class="card"><div class="label">Required Yes</div><div class="value" id="requiredYes">-</div><div class="hint">To hit target</div></div>
-      <div class="card"><div class="label">Shortage</div><div class="value" id="shortage">-</div><div class="hint">Negative means ahead</div></div>
+      <div class="card"><div class="label">Total Yes</div><div class="value" id="totalYes">-</div><div class="hint">CSAT / Yes count</div></div>
+      <div class="card"><div class="label">Total No</div><div class="value" id="totalNo">-</div><div class="hint">DSAT / No count</div></div>
+      <div class="card"><div class="label">Total Response</div><div class="value" id="grandTotal">-</div><div class="hint">Yes + No</div></div>
+      <div class="card"><div class="label">Current CFS</div><div class="value" id="cfsPct">-</div><div class="hint">Yes / Total</div></div>
+      <div class="card"><div class="label">Target</div><div class="value" id="targetKpi">-</div><div class="hint">Editable above</div></div>
+      <div class="card"><div class="label">Required Yes</div><div class="value" id="requiredYes">-</div><div class="hint">To recover current gap</div></div>
+      <div class="card"><div class="label">Required RR</div><div class="value" id="requiredRR">-</div><div class="hint">For remaining forecast</div></div>
+      <div class="card"><div class="label">Projected EOM</div><div class="value" id="projectedEom">-</div><div class="hint">Current daily trend</div></div>
     </section>
 
     <section class="insights" id="insights"></section>
 
     <section class="grid charts">
-      <div class="card">
-        <div class="section-title"><h2>Agent CFS Performance</h2><span class="pill">Top + bottom view</span></div>
-        <canvas id="agentChart" height="130"></canvas>
-      </div>
-      <div class="card">
-        <div class="section-title"><h2>Yes vs No Mix</h2><span class="pill">Overall</span></div>
-        <canvas id="mixChart" height="170"></canvas>
-      </div>
+      <div class="card"><div class="section-title"><h2>Agent Wise CFS</h2><span class="pill">Dynamic from raw</span></div><canvas id="agentChart" height="130"></canvas></div>
+      <div class="card"><div class="section-title"><h2>Yes vs No Mix</h2><span class="pill">Selected month</span></div><canvas id="mixChart" height="170"></canvas></div>
     </section>
 
-    <section class="grid wide">
-      <div class="card">
-        <div class="section-title"><h2>TL Wise CFS</h2><span class="pill">Team Phoenix</span></div>
-        <canvas id="tlChart" height="160"></canvas>
-      </div>
-      <div class="card">
-        <div class="section-title"><h2>QA Wise CFS</h2><span class="pill">Audit ownership</span></div>
-        <canvas id="qaChart" height="160"></canvas>
-      </div>
+    <section class="grid two">
+      <div class="card"><div class="section-title"><h2>TL Wise CFS</h2><span class="pill">Calculated from raw TL column</span></div><canvas id="tlChart" height="160"></canvas></div>
+      <div class="card"><div class="section-title"><h2>QA Wise CFS</h2><span class="pill">Calculated from raw QA column</span></div><canvas id="qaChart" height="160"></canvas></div>
     </section>
 
     <section class="card">
       <div class="section-title"><h2>Agent Details</h2><span class="pill" id="rowCount">0 rows</span></div>
-      <div class="table-wrap">
-        <table>
-          <thead>
-            <tr><th>Rank</th><th>Network ID</th><th>Name</th><th>Yes</th><th>No</th><th>Total</th><th>CFS %</th><th>Gap</th><th>Progress</th></tr>
-          </thead>
-          <tbody id="agentRows"></tbody>
-        </table>
-      </div>
+      <div class="table-wrap"><table><thead><tr><th>Rank</th><th>Network ID</th><th>Agent</th><th>TL</th><th>QA</th><th>Yes</th><th>No</th><th>Total</th><th>CFS%</th><th>Gap</th><th>Progress</th></tr></thead><tbody id="agentRows"></tbody></table></div>
     </section>
+  </section>
 
-    <div class="footer">Built with HTML, CSS, JavaScript, Chart.js and Google Sheets CSV export.</div>
-  </main>
+  <section id="dateView" class="hidden">
+    <section class="grid two">
+      <div class="card"><div class="section-title"><h2>Date Wise CFS Trend</h2><span class="pill">Daily score</span></div><canvas id="dateTrendChart" height="165"></canvas></div>
+      <div class="card"><div class="section-title"><h2>Date Wise Volume</h2><span class="pill">Yes / No</span></div><canvas id="dateVolumeChart" height="165"></canvas></div>
+    </section>
+    <section class="card">
+      <div class="section-title"><h2>Date Wise Data</h2><span class="pill" id="dateRowCount">0 days</span></div>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Yes</th><th>No</th><th>Total</th><th>CFS%</th><th>Gap</th><th>Required RR</th><th>Comment</th></tr></thead><tbody id="dateRows"></tbody></table></div>
+    </section>
+  </section>
 
-  <script>
-    const SHEET_ID = "19cFrK8XV_vua3YUht46TWH4ki_nTZ2S-3fpbo66zRXI";
-    const DASHBOARD_GID = "1096640373";
-    const TARGET = num(rawRows[1][1]);
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/export?format=csv&gid=${DASHBOARD_GID}`;
+  <div class="footer">Built with HTML, CSS, JavaScript, Chart.js and Google Sheets raw CSV export.</div>
+</main>
 
-    let rawRows = [];
-    let agents = [];
-    let tls = [];
-    let qas = [];
-    let charts = {};
+<script>
+const SHEET_ID = "19cFrK8XV_vua3YUht46TWH4ki_nTZ2S-3fpbo66zRXI";
+const RAW_SHEET_NAME = "NPS Raw";
+const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(RAW_SHEET_NAME)}`;
+const AUTO_REFRESH_MS = 30 * 60 * 1000;
 
-    const $ = (id) => document.getElementById(id);
-    const num = (v) => {
-      if (v === undefined || v === null) return 0;
-      const cleaned = String(v).replace(/[%,$\s]/g, "").trim();
-      const parsed = parseFloat(cleaned);
-      return Number.isFinite(parsed) ? parsed : 0;
-    };
-    const pct = (yes, total) => total ? (yes / total * 100) : 0;
-    const fmt = (n) => Number(n || 0).toLocaleString("en-US");
-    const fmtPct = (n) => `${(Number(n) || 0).toFixed(2)}%`;
+let raw = [], clean = [], filtered = [], agg = {}, charts = {}, currentTable = "agent";
+const $ = id => document.getElementById(id);
+const norm = s => String(s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
+const text = v => String(v ?? "").trim();
+const num = v => { const n = parseFloat(String(v ?? "").replace(/[%,$\s]/g,"")); return Number.isFinite(n) ? n : 0; };
+const fmt = n => Number(n || 0).toLocaleString("en-US");
+const pct = (yes,total) => total ? yes / total * 100 : 0;
+const fmtPct = n => `${(Number(n)||0).toFixed(2)}%`;
+const target = () => Math.max(0, Math.min(100, num($("targetInput").value) || 93));
 
-    function parseCSV(text) {
-      const rows = [];
-      let row = [], cell = "", inQuotes = false;
-      for (let i = 0; i < text.length; i++) {
-        const c = text[i], next = text[i + 1];
-        if (c === '"' && inQuotes && next === '"') { cell += '"'; i++; }
-        else if (c === '"') inQuotes = !inQuotes;
-        else if (c === ',' && !inQuotes) { row.push(cell); cell = ""; }
-        else if ((c === '\n' || c === '\r') && !inQuotes) {
-          if (c === '\r' && next === '\n') i++;
-          row.push(cell); rows.push(row); row = []; cell = "";
-        } else cell += c;
-      }
-      if (cell.length || row.length) { row.push(cell); rows.push(row); }
-      return rows;
-    }
+function parseCSV(str){const rows=[];let row=[],cell="",q=false;for(let i=0;i<str.length;i++){const c=str[i],n=str[i+1];if(c==='"'&&q&&n==='"'){cell+='"';i++}else if(c==='"')q=!q;else if(c===','&&!q){row.push(cell);cell=""}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cell);if(row.some(x=>String(x).trim()!==""))rows.push(row);row=[];cell=""}else cell+=c}if(cell.length||row.length){row.push(cell);rows.push(row)}return rows}
+function parseDate(v){
+  if(!v) return null; const s=String(v).trim();
+  let d = new Date(s); if(!isNaN(d)) return d;
+  const m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/); if(m){let a=+m[1],b=+m[2],y=+m[3]; if(y<100)y+=2000; d=new Date(y,b-1,a); if(!isNaN(d))return d;}
+  return null;
+}
+function monthKey(d){return d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}` : "Unknown"}
+function monthLabel(key){if(key==="all")return"All";if(key==="Unknown")return"Unknown";const [y,m]=key.split("-").map(Number);return new Date(y,m-1,1).toLocaleString("en-US",{month:"short",year:"numeric"})}
+function dayKey(d){return d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` : "Unknown"}
 
-    function extractData(rows) {
-      // Dashboard tab current structure:
-      // Agent table starts row 3 and columns A:F => indexes 2..18, 0..5
-      const agentRows = rows.slice(2, 18).map(r => ({
-        id: r[0] || "",
-        name: r[1] || "",
-        yes: num(r[2]),
-        no: num(r[3]),
-        total: num(r[4]),
-        cfs: num(r[5]) || pct(num(r[2]), num(r[4]))
-      })).filter(a => a.id && a.name && !/grand total/i.test(a.id + a.name));
-
-      // TL table appears around row 33, columns R:V in the sheet layout.
-      // CSV blank columns may shift, so this also scans row cells for name + 4 numeric columns.
-      const tlRows = rows.slice(32, 41).map(r => {
-        const start = r.findIndex((cell, idx) => cell && /[a-zA-Z]/.test(cell) && idx > 5);
-        if (start < 0) return null;
-        return { name: r[start], yes: num(r[start+1]), no: num(r[start+2]), total: num(r[start+3]), cfs: num(r[start+4]) || pct(num(r[start+1]), num(r[start+3])) };
-      }).filter(x => x && x.name && !/total/i.test(x.name) && x.total > 0);
-
-      // QA table appears around row 47, columns A:E.
-      const qaRows = rows.slice(46, 52).map(r => ({
-        name: r[0] || "",
-        yes: num(r[1]),
-        no: num(r[2]),
-        total: num(r[3]),
-        cfs: num(r[4]) || pct(num(r[1]), num(r[3]))
-      })).filter(q => q.name && q.total > 0);
-
-      return { agents: agentRows, tls: tlRows, qas: qaRows };
-    }
-
-    function destroyChart(id) { if (charts[id]) charts[id].destroy(); }
-    function chart(id, config) { destroyChart(id); charts[id] = new Chart($(id), config); }
-
-    function renderKpis(data) {
-      const totalYes = data.agents.reduce((s, a) => s + a.yes, 0);
-      const totalNo = data.agents.reduce((s, a) => s + a.no, 0);
-      const grand = totalYes + totalNo;
-      const current = pct(totalYes, grand);
-      const requiredYes = Math.ceil((TARGET / 100 * grand - totalYes) / (1 - TARGET / 100));
-      const shortage = Math.max(0, requiredYes);
-
-      $("totalYes").textContent = fmt(totalYes);
-      $("totalNo").textContent = fmt(totalNo);
-      $("grandTotal").textContent = fmt(grand);
-      $("cfsPct").textContent = fmtPct(current);
-      $("cfsPct").className = `value ${current >= TARGET ? "good" : "bad"}`;
-      $("requiredYes").textContent = current >= TARGET ? "0" : fmt(requiredYes);
-      $("shortage").textContent = current >= TARGET ? "Ahead" : fmt(shortage);
-      $("shortage").className = `value ${current >= TARGET ? "good" : "bad"}`;
-      $("targetHero").textContent = `${TARGET}%`;
-
-      const sorted = [...data.agents].sort((a,b) => b.cfs - a.cfs);
-      const best = sorted[0];
-      const risk = [...data.agents].filter(a => a.cfs < TARGET).sort((a,b) => a.cfs - b.cfs)[0];
-      const highVolumeRisk = [...data.agents].filter(a => a.cfs < TARGET).sort((a,b) => b.total - a.total)[0];
-      const belowCount = data.agents.filter(a => a.cfs < TARGET).length;
-      $("insights").innerHTML = `
-        <div class="insight"><strong>Best performer: ${best ? best.name : "-"}</strong><span>${best ? fmtPct(best.cfs) + " from " + fmt(best.total) + " responses" : "No data found"}</span></div>
-        <div class="insight"><strong>Risk agents: ${belowCount}</strong><span>${belowCount} agents are below ${TARGET}% target and need recovery planning.</span></div>
-        <div class="insight"><strong>Priority coaching: ${highVolumeRisk ? highVolumeRisk.name : "-"}</strong><span>${highVolumeRisk ? "High volume below target: " + fmtPct(highVolumeRisk.cfs) + ", total " + fmt(highVolumeRisk.total) : "No high-volume risk found"}</span></div>
-      `;
-    }
-
-    function renderCharts(data) {
-      const topBottom = [...data.agents].sort((a,b) => b.cfs - a.cfs);
-      chart("agentChart", {
-        type: "bar",
-        data: { labels: topBottom.map(a => a.name.split(" ").slice(0,2).join(" ")), datasets: [{ label: "CFS %", data: topBottom.map(a => a.cfs), borderWidth: 1 }] },
-        options: { responsive: true, plugins: { legend: { labels: { color: "#cbd5e1" } }, datalabels: { color: "#e5e7eb", anchor: "end", align: "top", formatter: v => v.toFixed(1) + "%", font: { size: 10 } } }, scales: { x: { ticks: { color: "#94a3b8" }, grid: { color: "rgba(148,163,184,0.08)" } }, y: { min: 80, max: 100, ticks: { color: "#94a3b8", callback: v => v + "%" }, grid: { color: "rgba(148,163,184,0.08)" } } } },
-        plugins: [ChartDataLabels]
-      });
-      const totalYes = data.agents.reduce((s, a) => s + a.yes, 0);
-      const totalNo = data.agents.reduce((s, a) => s + a.no, 0);
-      chart("mixChart", {
-        type: "doughnut",
-        data: { labels: ["Yes", "No"], datasets: [{ data: [totalYes, totalNo], borderWidth: 0 }] },
-        options: { cutout: "68%", plugins: { legend: { position: "bottom", labels: { color: "#cbd5e1" } }, datalabels: { color: "#fff", formatter: (v, ctx) => { const total = ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0); return total ? (v/total*100).toFixed(1)+"%" : ""; } } } },
-        plugins: [ChartDataLabels]
-      });
-      chart("tlChart", {
-        type: "bar",
-        data: { labels: data.tls.map(t => t.name), datasets: [{ label: "TL CFS %", data: data.tls.map(t => t.cfs), borderWidth: 1 }] },
-        options: { indexAxis: "y", responsive: true, plugins: { legend: { labels: { color: "#cbd5e1" } }, datalabels: { color: "#e5e7eb", anchor: "end", align: "right", formatter: v => v.toFixed(1)+"%" } }, scales: { x: { min: 80, max: 100, ticks: { color: "#94a3b8", callback: v => v + "%" }, grid: { color: "rgba(148,163,184,0.08)" } }, y: { ticks: { color: "#94a3b8" }, grid: { display: false } } } },
-        plugins: [ChartDataLabels]
-      });
-      chart("qaChart", {
-        type: "bar",
-        data: { labels: data.qas.map(q => q.name), datasets: [{ label: "QA CFS %", data: data.qas.map(q => q.cfs), borderWidth: 1 }] },
-        options: { responsive: true, plugins: { legend: { labels: { color: "#cbd5e1" } }, datalabels: { color: "#e5e7eb", anchor: "end", align: "top", formatter: v => v.toFixed(1)+"%" } }, scales: { x: { ticks: { color: "#94a3b8" }, grid: { color: "rgba(148,163,184,0.08)" } }, y: { min: 85, max: 100, ticks: { color: "#94a3b8", callback: v => v + "%" }, grid: { color: "rgba(148,163,184,0.08)" } } } },
-        plugins: [ChartDataLabels]
-      });
-    }
-
-    function filteredAgents() {
-      const q = $("searchInput").value.toLowerCase().trim();
-      const f = $("statusFilter").value;
-      return agents.filter(a => {
-        const match = !q || `${a.id} ${a.name}`.toLowerCase().includes(q);
-        const status = f === "all" || (f === "above" ? a.cfs >= TARGET : a.cfs < TARGET);
-        return match && status;
-      }).sort((a,b) => b.cfs - a.cfs);
-    }
-
-    function renderTable() {
-      const rows = filteredAgents();
-      $("rowCount").textContent = `${rows.length} rows`;
-      $("agentRows").innerHTML = rows.map((a, i) => {
-        const gap = a.cfs - TARGET;
-        return `<tr>
-          <td>${i + 1}</td><td>${a.id}</td><td>${a.name}</td><td>${fmt(a.yes)}</td><td>${fmt(a.no)}</td><td>${fmt(a.total)}</td>
-          <td class="${a.cfs >= TARGET ? "good" : "bad"}">${fmtPct(a.cfs)}</td>
-          <td class="${gap >= 0 ? "good" : "bad"}">${gap >= 0 ? "+" : ""}${gap.toFixed(2)}%</td>
-          <td><div class="bar"><i style="width:${Math.max(0, Math.min(100, a.cfs))}%"></i></div></td>
-        </tr>`;
-      }).join("");
-    }
-
-    async function loadData() {
-      $("errorBox").style.display = "none";
-      try {
-        const res = await fetch(CSV_URL + `&cachebust=${Date.now()}`);
-        if (!res.ok) throw new Error("Could not fetch Google Sheet CSV. Check sharing/publish settings.");
-        const text = await res.text();
-        rawRows = parseCSV(text);
-        const data = extractData(rawRows);
-        agents = data.agents; tls = data.tls; qas = data.qas;
-        if (!agents.length) throw new Error("No agent rows found. Please check Dashboard tab layout or row mapping in extractData().");
-        renderKpis(data);
-        renderCharts(data);
-        renderTable();
-        $("updatedAt").textContent = new Date().toLocaleString();
-      } catch (err) {
-        $("errorBox").textContent = err.message + " If the sheet is private, use File > Share > Publish to web or make it viewable with link.";
-        $("errorBox").style.display = "block";
-      }
-    }
-
-    function exportCSV() {
-      const rows = filteredAgents();
-      const header = ["Rank","Network ID","Name","Yes","No","Total","CFS %","Gap vs Target"];
-      const body = rows.map((a,i) => [i+1, a.id, a.name, a.yes, a.no, a.total, a.cfs.toFixed(2), (a.cfs - TARGET).toFixed(2)]);
-      const csv = [header, ...body].map(r => r.map(c => `"${String(c).replaceAll('"','""')}"`).join(",")).join("\n");
-      const blob = new Blob([csv], {type: "text/csv"});
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url; a.download = "cfs-agent-performance.csv"; a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    $("searchInput").addEventListener("input", renderTable);
-    $("statusFilter").addEventListener("change", renderTable);
-    $("refreshBtn").addEventListener("click", loadData);
-    $("exportBtn").addEventListener("click", exportCSV);
-    loadData();
-    setInterval(loadData, 60 * 60 * 1000);
-  </script>
+function findHeader(rows){
+  const score = r => r.reduce((s,c)=>s + (/date|time|agent|network|employee|tl|team|qa|auditor|nps|cfs|result|feedback|status|response|csat|dsat/i.test(c)?1:0),0);
+  let best=0,bestScore=-1; rows.slice(0,25).forEach((r,i)=>{const sc=score(r); if(sc>bestScore){bestScore=sc;best=i}}); return best;
+}
+function colIndex(headers, patterns){
+  const h=headers.map(norm); for(const p of patterns){const pi=norm(p); const exact=h.findIndex(x=>x===pi); if(exact>=0)return exact; const incl=h.findIndex(x=>x.includes(pi)||pi.includes(x)); if(incl>=0)return incl;} return -1;
+}
+function inferResult(obj, headers){
+  const likely = ["result","cfs","csat","dsat","nps","status","score","feedback","response","customerfeedback","category"];
+  const values=[];
+  headers.forEach(h=>{ if(likely.some(k=>norm(h).includes(k))) values.push(obj[h]); });
+  values.push(...Object.values(obj));
+  const joined = values.map(v=>String(v??"").toLowerCase()).join(" | ");
+  if(/\b(no|dsat|detractor|negative|bad|0|fail|not satisfied)\b/.test(joined)) return "No";
+  if(/\b(yes|csat|promoter|positive|good|1|pass|satisfied)\b/.test(joined)) return "Yes";
+  return "Unknown";
+}
+function prepareRows(rows){
+  const hRow=findHeader(rows), headers=rows[hRow].map((h,i)=>text(h)||`Column ${i+1}`), data=rows.slice(hRow+1);
+  const idx={
+    date: colIndex(headers,["Date","Created Date","Audit Date","Submission Date","Response Date","Timestamp","Time"]),
+    agent: colIndex(headers,["Name","Agent Name","Employee Name","Advisor Name","User Name"]),
+    id: colIndex(headers,["Network ID","Login ID","Employee ID","Agent ID","User ID","ID"]),
+    tl: colIndex(headers,["TL","TL Name","Team Lead","Supervisor","Leader"]),
+    qa: colIndex(headers,["QA","QA Name","Auditor","Evaluator","Audit By","Checked By"])
+  };
+  return data.map(r=>{
+    const obj={}; headers.forEach((h,i)=>obj[h]=r[i]??"");
+    const d=parseDate(r[idx.date]); const result=inferResult(obj,headers);
+    return {date:d,dateKey:dayKey(d),month:monthKey(d),agent:text(r[idx.agent])||"Unknown Agent",id:text(r[idx.id])||"-",tl:text(r[idx.tl])||"Unknown TL",qa:text(r[idx.qa])||"Unknown QA",result,raw:obj};
+  }).filter(x=>x.result==="Yes"||x.result==="No");
+}
+function addAgg(map,key,row){
+  if(!map[key]) map[key]={key,yes:0,no:0,total:0,items:[],tlSet:new Set(),qaSet:new Set(),idSet:new Set()};
+  if(row.result==="Yes")map[key].yes++; else map[key].no++; map[key].total++; map[key].items.push(row); map[key].tlSet.add(row.tl); map[key].qaSet.add(row.qa); map[key].idSet.add(row.id); return map[key];
+}
+function summarize(rows){
+  const agents={}, tls={}, qas={}, dates={}; let yes=0,no=0;
+  rows.forEach(r=>{ if(r.result==="Yes")yes++; else no++; addAgg(agents,`${r.id}||${r.agent}`,r); addAgg(tls,r.tl,r); addAgg(qas,r.qa,r); addAgg(dates,r.dateKey,r); });
+  const finalize = o => Object.values(o).map(x=>({...x,cfs:pct(x.yes,x.total),tl:[...x.tlSet].join(", "),qa:[...x.qaSet].join(", "),id:[...x.idSet][0]||"-"}));
+  return {yes,no,total:yes+no,cfs:pct(yes,yes+no),agents:finalize(agents),tls:finalize(tls),qas:finalize(qas),dates:finalize(dates).sort((a,b)=>a.key.localeCompare(b.key))};
+}
+function fillMonths(){
+  const months=[...new Set(clean.map(r=>r.month))].filter(Boolean).sort(); const sel=$("monthSelect"), cur=sel.value;
+  sel.innerHTML='<option value="all">All months</option>'+months.map(m=>`<option value="${m}">${monthLabel(m)}</option>`).join("");
+  if(months.includes(cur)) sel.value=cur; else sel.value=months[months.length-1] || "all";
+}
+function applyFilters(){
+  const m=$("monthSelect").value; filtered=clean.filter(r=>m==="all"||r.month===m); agg=summarize(filtered); $("selectedMonthText").textContent=monthLabel(m); renderAll();
+}
+function remainingDaysInSelection(){
+  const m=$("monthSelect").value; if(m==="all"||m==="Unknown")return 0; const [y,mo]=m.split("-").map(Number); const today=new Date(); const end=new Date(y,mo,0); const lastData=agg.dates.length?parseDate(agg.dates[agg.dates.length-1].key):today; const from = lastData && lastData < end ? lastData : today; return Math.max(0, Math.ceil((end-from)/(1000*60*60*24))); }
+function requiredYesToRecover(yes,total,t){ const T=t/100; if(!total||pct(yes,total)>=t)return 0; return Math.ceil(((T*total)-yes)/(1-T)); }
+function requiredRR(yes,total,t){
+  const daysDone=Math.max(1,agg.dates.filter(d=>d.key!=="Unknown").length); const avgDaily=total/daysDone; const remDays=remainingDaysInSelection(); const remVol=Math.round(avgDaily*remDays); if(!remVol)return requiredYesToRecover(yes,total,t)?100:0; const finalVol=total+remVol; const need=(t/100*finalVol)-yes; return Math.max(0,Math.min(100,need/remVol*100));
+}
+function projectedEOM(yes,total){ const daysDone=Math.max(1,agg.dates.filter(d=>d.key!=="Unknown").length); const remDays=remainingDaysInSelection(); if(!remDays)return pct(yes,total); const avgYes=yes/daysDone, avgTotal=total/daysDone; return pct(yes+avgYes*remDays,total+avgTotal*remDays); }
+function destroy(id){if(charts[id])charts[id].destroy()}
+function draw(id,cfg){destroy(id);charts[id]=new Chart($(id),cfg)}
+const chartOptions = (min=0,max=100)=>({responsive:true,plugins:{legend:{labels:{color:"#cbd5e1"}},datalabels:{color:"#e5e7eb",anchor:"end",align:"top",formatter:v=>Number(v).toFixed(1)+"%",font:{size:10}}},scales:{x:{ticks:{color:"#94a3b8"},grid:{color:"rgba(148,163,184,.08)"}},y:{min,max,ticks:{color:"#94a3b8",callback:v=>v+"%"},grid:{color:"rgba(148,163,184,.08)"}}}});
+function renderKpis(){
+  const t=target(), rr=requiredRR(agg.yes,agg.total,t), eom=projectedEOM(agg.yes,agg.total), req=requiredYesToRecover(agg.yes,agg.total,t);
+  $("totalYes").textContent=fmt(agg.yes); $("totalNo").textContent=fmt(agg.no); $("grandTotal").textContent=fmt(agg.total); $("cfsPct").textContent=fmtPct(agg.cfs); $("cfsPct").className=`value ${agg.cfs>=t?"good":"bad"}`; $("targetKpi").textContent=fmtPct(t); $("requiredYes").textContent=fmt(req); $("requiredRR").textContent=fmtPct(rr); $("requiredRR").className=`value ${rr<=100&&agg.cfs<t?"warn":agg.cfs>=t?"good":"bad"}`; $("projectedEom").textContent=fmtPct(eom); $("projectedEom").className=`value ${eom>=t?"good":"bad"}`;
+  const best=[...agg.agents].sort((a,b)=>b.cfs-a.cfs)[0], risk=[...agg.agents].filter(a=>a.cfs<t).sort((a,b)=>a.cfs-b.cfs)[0], bestTL=[...agg.tls].sort((a,b)=>b.cfs-a.cfs)[0], riskQA=[...agg.qas].filter(a=>a.cfs<t).sort((a,b)=>a.cfs-b.cfs)[0];
+  $("insights").innerHTML=`<div class="insight"><strong>Best Agent: ${best?.key.split("||")[1]||"-"}</strong><span>${best?fmtPct(best.cfs)+" from "+fmt(best.total)+" responses":"No data"}</span></div><div class="insight"><strong>Lowest Risk: ${risk?.key.split("||")[1]||"-"}</strong><span>${risk?fmtPct(risk.cfs)+"; needs coaching/recovery":"All agents are above target"}</span></div><div class="insight"><strong>Best TL: ${bestTL?.key||"-"}</strong><span>${bestTL?fmtPct(bestTL.cfs)+" from "+fmt(bestTL.total)+" responses":"No TL data"}</span></div><div class="insight"><strong>QA Attention: ${riskQA?.key||"-"}</strong><span>${riskQA?fmtPct(riskQA.cfs)+" below target":"No QA risk found"}</span></div>`;
+}
+function filteredAgents(){ const q=$("searchInput").value.toLowerCase().trim(), f=$("statusFilter").value, t=target(); return agg.agents.filter(a=>{const hay=`${a.key} ${a.tl} ${a.qa}`.toLowerCase(); return (!q||hay.includes(q)) && (f==="all" || (f==="above"?a.cfs>=t:a.cfs<t));}).sort((a,b)=>b.cfs-a.cfs); }
+function renderTables(){
+  const t=target(), rows=filteredAgents(); $("rowCount").textContent=`${rows.length} rows`; $("agentRows").innerHTML=rows.map((a,i)=>{const [id,name]=a.key.split("||"),gap=a.cfs-t; return `<tr><td>${i+1}</td><td>${id}</td><td>${name}</td><td>${a.tl}</td><td>${a.qa}</td><td>${fmt(a.yes)}</td><td>${fmt(a.no)}</td><td>${fmt(a.total)}</td><td class="${a.cfs>=t?"good":"bad"}">${fmtPct(a.cfs)}</td><td class="${gap>=0?"good":"bad"}">${gap>=0?"+":""}${gap.toFixed(2)}%</td><td><div class="bar"><i style="width:${Math.max(0,Math.min(100,a.cfs))}%"></i></div></td></tr>`}).join("");
+  $("dateRowCount").textContent=`${agg.dates.length} days`; $("dateRows").innerHTML=agg.dates.map(d=>{const gap=d.cfs-t, rr=requiredRR(d.yes,d.total,t); const comment=d.cfs>=t?"On target":"Recovery needed"; return `<tr><td>${d.key}</td><td>${fmt(d.yes)}</td><td>${fmt(d.no)}</td><td>${fmt(d.total)}</td><td class="${d.cfs>=t?"good":"bad"}">${fmtPct(d.cfs)}</td><td class="${gap>=0?"good":"bad"}">${gap>=0?"+":""}${gap.toFixed(2)}%</td><td>${fmtPct(rr)}</td><td>${comment}</td></tr>`}).join("");
+}
+function renderCharts(){
+  const t=target(), agents=[...filteredAgents()].slice(0,24), tls=[...agg.tls].sort((a,b)=>b.total-a.total), qas=[...agg.qas].sort((a,b)=>b.total-a.total), dates=agg.dates.filter(d=>d.key!=="Unknown");
+  draw("agentChart",{type:"bar",data:{labels:agents.map(a=>a.key.split("||")[1].split(" ").slice(0,2).join(" ")),datasets:[{label:"CFS %",data:agents.map(a=>a.cfs),borderWidth:1},{label:"Target",data:agents.map(()=>t),type:"line",pointRadius:0,borderWidth:2}]},options:chartOptions(Math.max(0,t-15),100),plugins:[ChartDataLabels]});
+  draw("mixChart",{type:"doughnut",data:{labels:["Yes","No"],datasets:[{data:[agg.yes,agg.no],borderWidth:0}]},options:{cutout:"68%",plugins:{legend:{position:"bottom",labels:{color:"#cbd5e1"}},datalabels:{color:"#fff",formatter:(v,ctx)=>{const s=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return s?(v/s*100).toFixed(1)+"%":""}}}},plugins:[ChartDataLabels]});
+  draw("tlChart",{type:"bar",data:{labels:tls.map(x=>x.key),datasets:[{label:"TL CFS %",data:tls.map(x=>x.cfs),borderWidth:1},{label:"Target",data:tls.map(()=>t),type:"line",pointRadius:0,borderWidth:2}]},options:{...chartOptions(Math.max(0,t-15),100),indexAxis:"y"},plugins:[ChartDataLabels]});
+  draw("qaChart",{type:"bar",data:{labels:qas.map(x=>x.key),datasets:[{label:"QA CFS %",data:qas.map(x=>x.cfs),borderWidth:1},{label:"Target",data:qas.map(()=>t),type:"line",pointRadius:0,borderWidth:2}]},options:chartOptions(Math.max(0,t-15),100),plugins:[ChartDataLabels]});
+  draw("dateTrendChart",{type:"line",data:{labels:dates.map(d=>d.key),datasets:[{label:"Daily CFS %",data:dates.map(d=>d.cfs),tension:.32,borderWidth:2},{label:"Target",data:dates.map(()=>t),pointRadius:0,borderWidth:2}]},options:chartOptions(Math.max(0,t-15),100),plugins:[ChartDataLabels]});
+  draw("dateVolumeChart",{type:"bar",data:{labels:dates.map(d=>d.key),datasets:[{label:"Yes",data:dates.map(d=>d.yes),borderWidth:1},{label:"No",data:dates.map(d=>d.no),borderWidth:1}]},options:{responsive:true,plugins:{legend:{labels:{color:"#cbd5e1"}},datalabels:{display:false}},scales:{x:{ticks:{color:"#94a3b8"},grid:{color:"rgba(148,163,184,.08)"}},y:{ticks:{color:"#94a3b8"},grid:{color:"rgba(148,163,184,.08)"}}}},plugins:[ChartDataLabels]});
+}
+function renderAll(){ renderKpis(); renderTables(); renderCharts(); }
+async function loadData(){
+  $("errorBox").style.display="none";
+  try{ const res=await fetch(CSV_URL+`&cachebust=${Date.now()}`); if(!res.ok)throw new Error("Could not fetch NPS Raw CSV."); const csv=await res.text(); raw=parseCSV(csv); clean=prepareRows(raw); if(!clean.length)throw new Error("No valid Yes/No rows found. Check NPS Raw headers/result values or publish setting."); fillMonths(); applyFilters(); $("updatedAt").textContent=new Date().toLocaleString(); }
+  catch(e){ $("errorBox").textContent=e.message+" Tip: Google Sheet → File → Share → Publish to web, and confirm the tab name is exactly 'NPS Raw'."; $("errorBox").style.display="block"; }
+}
+function exportCSV(){ const rows = currentTable==="date" ? agg.dates.map(d=>[d.key,d.yes,d.no,d.total,d.cfs.toFixed(2),(d.cfs-target()).toFixed(2)]) : filteredAgents().map((a,i)=>{const [id,name]=a.key.split("||"); return [i+1,id,name,a.tl,a.qa,a.yes,a.no,a.total,a.cfs.toFixed(2),(a.cfs-target()).toFixed(2)]}); const header=currentTable==="date"?["Date","Yes","No","Total","CFS%","Gap"]:["Rank","Network ID","Agent","TL","QA","Yes","No","Total","CFS%","Gap"]; const csv=[header,...rows].map(r=>r.map(c=>`"${String(c).replaceAll('"','""')}"`).join(",")).join("\n"); const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=currentTable==="date"?"date-wise-cfs.csv":"agent-wise-cfs.csv"; a.click(); URL.revokeObjectURL(a.href); }
+$("monthSelect").addEventListener("change",applyFilters); $("targetInput").addEventListener("input",renderAll); $("searchInput").addEventListener("input",renderAll); $("statusFilter").addEventListener("change",renderAll); $("refreshBtn").addEventListener("click",loadData); $("exportBtn").addEventListener("click",exportCSV);
+document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.querySelectorAll("#dashboardView,#dateView").forEach(v=>v.classList.add("hidden"));$(btn.dataset.view).classList.remove("hidden");currentTable=btn.dataset.view==="dateView"?"date":"agent";renderCharts();}));
+loadData(); setInterval(loadData,AUTO_REFRESH_MS);
+</script>
 </body>
 </html>
