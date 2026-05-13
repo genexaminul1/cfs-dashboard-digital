@@ -3,34 +3,40 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CFS Smart Dashboard | Raw Data</title>
+  <title>Live CSAT / CFS Dashboard</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.2.0"></script>
   <style>
-    :root{--bg:#070b14;--panel:rgba(15,23,42,.88);--panel2:rgba(30,41,59,.76);--text:#e5e7eb;--muted:#94a3b8;--line:rgba(148,163,184,.18);--cyan:#38bdf8;--green:#22c55e;--red:#fb7185;--yellow:#f59e0b;--shadow:0 24px 80px rgba(0,0,0,.35)}
-    *{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top left,rgba(56,189,248,.24),transparent 32%),radial-gradient(circle at top right,rgba(34,197,94,.16),transparent 28%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}.wrap{max-width:1480px;margin:auto;padding:26px}.glass,.card{background:linear-gradient(135deg,rgba(15,23,42,.94),rgba(15,23,42,.68));border:1px solid var(--line);border-radius:24px;box-shadow:var(--shadow);backdrop-filter:blur(18px)}.hero{display:grid;grid-template-columns:1.3fr .7fr;gap:16px;margin-bottom:16px}.hero-main{padding:28px}.side{padding:22px}.eyebrow{color:var(--cyan);font-size:12px;text-transform:uppercase;letter-spacing:.22em;font-weight:900}h1{margin:10px 0 8px;font-size:clamp(30px,4vw,54px);line-height:1;letter-spacing:-.05em}h2{margin:0;font-size:18px}.sub{color:var(--muted);font-size:14px;line-height:1.55}.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:20px}input,select,button{border:1px solid var(--line);background:rgba(15,23,42,.82);color:var(--text);border-radius:14px;padding:11px 13px;font:inherit;outline:none}input{min-width:210px}button{cursor:pointer}.primary{background:linear-gradient(135deg,var(--cyan),var(--green));color:#03101f;font-weight:900}.grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(8,minmax(0,1fr));margin-bottom:16px}.card{padding:18px}.label{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.12em;font-weight:850}.value{font-size:28px;font-weight:950;margin-top:9px;letter-spacing:-.04em}.hint{color:var(--muted);font-size:12px;margin-top:8px}.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--yellow)}.charts{grid-template-columns:1.15fr .85fr;margin-bottom:16px}.two{grid-template-columns:1fr 1fr;margin-bottom:16px}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.pill{color:var(--muted);font-size:12px;border:1px solid var(--line);padding:6px 10px;border-radius:999px}.insights{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.insight{padding:16px;background:var(--panel2);border:1px solid var(--line);border-radius:20px}.insight strong{display:block;margin-bottom:5px}.insight span{color:var(--muted);font-size:13px;line-height:1.45}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.12em;position:sticky;top:0;background:#111827;z-index:1}tbody tr:hover{background:rgba(56,189,248,.07)}.table-wrap{max-height:460px;overflow:auto;border-radius:18px;border:1px solid var(--line)}.bar{height:9px;border-radius:999px;background:rgba(148,163,184,.18);overflow:hidden;min-width:110px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--yellow),var(--green))}.tabs{display:flex;gap:8px;margin:0 0 16px}.tab{padding:10px 14px;border-radius:999px;border:1px solid var(--line);background:rgba(15,23,42,.72);cursor:pointer;color:var(--muted);font-weight:800}.tab.active{color:#03101f;background:linear-gradient(135deg,var(--cyan),var(--green))}.hidden{display:none}.error{display:none;margin-bottom:16px;padding:16px;border:1px solid rgba(251,113,133,.35);background:rgba(127,29,29,.24);color:#fecdd3;border-radius:18px}.footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 0 8px}@media(max-width:1150px){.hero,.charts,.two,.insights{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(4,1fr)}}@media(max-width:680px){.wrap{padding:15px}.kpis{grid-template-columns:1fr 1fr}input,select,button{width:100%}.value{font-size:23px}}
+    :root{
+      --bg:#f6f8fc;--card:#ffffff;--glass:rgba(255,255,255,.78);--text:#0f172a;--muted:#64748b;--line:#e2e8f0;--blue:#2563eb;--cyan:#06b6d4;--green:#16a34a;--red:#e11d48;--amber:#f59e0b;--purple:#7c3aed;--shadow:0 24px 70px rgba(15,23,42,.12)
+    }
+    *{box-sizing:border-box}body{margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--text);background:radial-gradient(circle at 8% 0%,rgba(37,99,235,.18),transparent 28%),radial-gradient(circle at 92% 8%,rgba(6,182,212,.18),transparent 26%),linear-gradient(135deg,#f8fbff,#eef4ff 42%,#f8fafc)}
+    .wrap{max-width:1540px;margin:0 auto;padding:24px}.hero{display:grid;grid-template-columns:1.25fr .75fr;gap:18px;margin-bottom:18px}.glass,.card{background:var(--glass);border:1px solid rgba(226,232,240,.9);box-shadow:var(--shadow);backdrop-filter:blur(18px);border-radius:28px}.hero-main{padding:30px;position:relative;overflow:hidden}.hero-main:after{content:"";position:absolute;right:-70px;top:-90px;width:270px;height:270px;background:linear-gradient(135deg,rgba(37,99,235,.14),rgba(6,182,212,.22));border-radius:999px}.side{padding:24px}.eyebrow{color:var(--blue);font-size:12px;font-weight:900;letter-spacing:.22em;text-transform:uppercase}h1{margin:10px 0 8px;font-size:clamp(34px,4vw,58px);line-height:1;letter-spacing:-.055em}h2{margin:0;font-size:18px}.sub{color:var(--muted);font-size:14px;line-height:1.55}.controls{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;position:relative;z-index:1}input,select,button{border:1px solid var(--line);background:#fff;color:var(--text);border-radius:15px;padding:11px 13px;font:inherit;outline:none;box-shadow:0 8px 22px rgba(15,23,42,.05)}select,input{min-width:185px}button{cursor:pointer;font-weight:800}.primary{background:linear-gradient(135deg,var(--blue),var(--cyan));color:white;border:0}.live{display:inline-flex;align-items:center;gap:8px;padding:7px 11px;border-radius:999px;background:#ecfdf5;color:#166534;font-size:12px;font-weight:900}.pulse{width:9px;height:9px;background:var(--green);border-radius:999px;box-shadow:0 0 0 0 rgba(22,163,74,.55);animation:pulse 1.4s infinite}@keyframes pulse{70%{box-shadow:0 0 0 12px rgba(22,163,74,0)}}.grid{display:grid;gap:16px}.kpis{grid-template-columns:repeat(8,minmax(0,1fr));margin-bottom:16px}.card{padding:18px;background:rgba(255,255,255,.9)}.label{font-size:11px;color:var(--muted);font-weight:900;letter-spacing:.12em;text-transform:uppercase}.value{font-size:29px;font-weight:950;margin-top:9px;letter-spacing:-.05em}.hint{font-size:12px;color:var(--muted);margin-top:7px}.good{color:var(--green)}.bad{color:var(--red)}.warn{color:var(--amber)}.blue{color:var(--blue)}.section-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}.pill{padding:6px 10px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font-size:12px;background:#fff}.tabs{display:flex;gap:8px;margin-bottom:16px}.tab{border:1px solid var(--line);border-radius:999px;padding:10px 14px;background:white;color:var(--muted);font-weight:900}.tab.active{background:linear-gradient(135deg,var(--blue),var(--cyan));color:white}.insights{grid-template-columns:repeat(4,1fr);margin-bottom:16px}.insight{border-radius:22px;padding:17px;border:1px solid var(--line);background:linear-gradient(135deg,#fff,rgba(239,246,255,.92))}.insight strong{display:block;margin-bottom:6px}.insight span{font-size:13px;line-height:1.45;color:var(--muted)}.charts{grid-template-columns:1.18fr .82fr;margin-bottom:16px}.two{grid-template-columns:1fr 1fr;margin-bottom:16px}.hidden{display:none}table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:11px 10px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.12em;background:#f8fafc;position:sticky;top:0;z-index:1}tbody tr:hover{background:#eff6ff}.table-wrap{max-height:470px;overflow:auto;border:1px solid var(--line);border-radius:20px}.bar{height:9px;border-radius:999px;background:#e2e8f0;overflow:hidden;min-width:110px}.bar i{display:block;height:100%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green))}.error{display:none;margin-bottom:16px;padding:16px;border:1px solid rgba(225,29,72,.25);background:#fff1f2;color:#9f1239;border-radius:18px}.footer{text-align:center;color:var(--muted);font-size:12px;padding:24px 0 8px}.small{font-size:12px;color:var(--muted)}
+    @media(max-width:1180px){.hero,.charts,.two,.insights{grid-template-columns:1fr}.kpis{grid-template-columns:repeat(4,1fr)}}@media(max-width:720px){.wrap{padding:14px}.kpis{grid-template-columns:1fr 1fr}input,select,button{width:100%}.value{font-size:23px}}
   </style>
 </head>
 <body>
 <main class="wrap">
   <section class="hero">
     <div class="hero-main glass">
-      <div class="eyebrow">CFS Tracker 2026 • Raw Powered</div>
-      <h1>Smart CFS + NPS Dashboard</h1>
-      <p class="sub">All KPI, TL wise, QA wise, Agent wise and Date Wise summary are calculated directly from <b>NPS Raw</b>. No manual dashboard formula dependency.</p>
+      <div class="eyebrow">Live Performance Control Room</div>
+      <h1>CSAT / CFS Dashboard</h1>
+      <p class="sub">Dynamic dashboard powered by <b>NPS Raw</b>. CFS is calculated strictly as <b>Positive Count ÷ Total Count × 100</b>. Target comes from <b>CSAT Target</b> sheet when available.</p>
       <div class="controls">
         <select id="monthSelect"><option value="all">All months</option></select>
-        <input id="targetInput" type="number" step="0.01" value="93" title="Target CFS %" />
-        <input id="searchInput" placeholder="Search Agent / TL / QA / ID..." />
-        <select id="statusFilter"><option value="all">All</option><option value="above">Above target</option><option value="below">Below target</option></select>
-        <button class="primary" id="refreshBtn">Refresh</button>
-        <button id="exportBtn">Export Current Table</button>
+        <select id="tlFilter"><option value="all">All TL</option></select>
+        <select id="qaFilter"><option value="all">All QA</option></select>
+        <input id="targetInput" type="number" step="0.01" value="93" title="Fallback target if CSAT Target sheet is blank" />
+        <input id="searchInput" placeholder="Search agent / ID..." />
+        <select id="statusFilter"><option value="all">All status</option><option value="above">Above target</option><option value="below">Below target</option></select>
+        <button class="primary" id="refreshBtn">Refresh Live</button>
+        <button id="exportBtn">Export CSV</button>
       </div>
     </div>
     <div class="side glass">
-      <div class="section-title"><h2>Live Status</h2><span class="pill">Auto refresh: 30 min</span></div>
-      <p class="sub"><span style="color:var(--green)">●</span> Source: Google Sheet → <b>NPS Raw</b><br/>Last refresh: <span id="updatedAt">Loading...</span><br/>Selected month: <b id="selectedMonthText">All</b></p>
-      <p class="sub">If data does not load, publish the sheet to web or keep it viewable with link.</p>
+      <div class="section-title"><h2>Live Status</h2><span class="live"><i class="pulse"></i>LIVE</span></div>
+      <p class="sub">Source: <b>Google Sheet → NPS Raw</b><br/>Target: <b id="targetSource">CSAT Target / fallback</b><br/>Selected month: <b id="selectedMonthText">All</b><br/>Last refresh: <b id="updatedAt">Loading...</b></p>
+      <p class="small">Auto refresh every 30 minutes. Use filters to drill down by month, TL, QA and agent.</p>
     </div>
   </section>
 
@@ -43,165 +49,142 @@
 
   <section id="dashboardView">
     <section class="grid kpis">
-      <div class="card"><div class="label">Total Yes</div><div class="value" id="totalYes">-</div><div class="hint">CSAT / Yes count</div></div>
-      <div class="card"><div class="label">Total No</div><div class="value" id="totalNo">-</div><div class="hint">DSAT / No count</div></div>
-      <div class="card"><div class="label">Total Response</div><div class="value" id="grandTotal">-</div><div class="hint">Yes + No</div></div>
-      <div class="card"><div class="label">Current CFS</div><div class="value" id="cfsPct">-</div><div class="hint">Yes / Total</div></div>
-      <div class="card"><div class="label">Target</div><div class="value" id="targetKpi">-</div><div class="hint">Editable above</div></div>
-      <div class="card"><div class="label">Required Yes</div><div class="value" id="requiredYes">-</div><div class="hint">To recover current gap</div></div>
-      <div class="card"><div class="label">Required RR</div><div class="value" id="requiredRR">-</div><div class="hint">For remaining forecast</div></div>
-      <div class="card"><div class="label">Projected EOM</div><div class="value" id="projectedEom">-</div><div class="hint">Current daily trend</div></div>
+      <div class="card"><div class="label">Positive Count</div><div class="value good" id="totalPositive">-</div><div class="hint">From raw positive count</div></div>
+      <div class="card"><div class="label">Negative Count</div><div class="value bad" id="totalNegative">-</div><div class="hint">Total - Positive</div></div>
+      <div class="card"><div class="label">Total Count</div><div class="value blue" id="grandTotal">-</div><div class="hint">Raw total count</div></div>
+      <div class="card"><div class="label">Current CSAT</div><div class="value" id="csatPct">-</div><div class="hint">Positive / Total</div></div>
+      <div class="card"><div class="label">Target</div><div class="value" id="targetKpi">-</div><div class="hint">Dynamic target</div></div>
+      <div class="card"><div class="label">Required Positive</div><div class="value" id="requiredPositive">-</div><div class="hint">To recover current gap</div></div>
+      <div class="card"><div class="label">Required RR</div><div class="value" id="requiredRR">-</div><div class="hint">Remaining volume run rate</div></div>
+      <div class="card"><div class="label">Projected EOM</div><div class="value" id="projectedEom">-</div><div class="hint">Based on current trend</div></div>
     </section>
 
-    <section class="insights" id="insights"></section>
+    <section class="grid insights" id="insights"></section>
 
     <section class="grid charts">
-      <div class="card"><div class="section-title"><h2>Agent Wise CFS</h2><span class="pill">Dynamic from raw</span></div><canvas id="agentChart" height="130"></canvas></div>
-      <div class="card"><div class="section-title"><h2>Yes vs No Mix</h2><span class="pill">Selected month</span></div><canvas id="mixChart" height="170"></canvas></div>
+      <div class="card"><div class="section-title"><h2>Agent Wise CSAT</h2><span class="pill">Positive / Total</span></div><canvas id="agentChart" height="130"></canvas></div>
+      <div class="card"><div class="section-title"><h2>Positive vs Negative Mix</h2><span class="pill">Filtered view</span></div><canvas id="mixChart" height="170"></canvas></div>
     </section>
 
     <section class="grid two">
-      <div class="card"><div class="section-title"><h2>TL Wise CFS</h2><span class="pill">Calculated from raw TL column</span></div><canvas id="tlChart" height="160"></canvas></div>
-      <div class="card"><div class="section-title"><h2>QA Wise CFS</h2><span class="pill">Calculated from raw QA column</span></div><canvas id="qaChart" height="160"></canvas></div>
+      <div class="card"><div class="section-title"><h2>TL Wise CSAT</h2><span class="pill">Dynamic</span></div><canvas id="tlChart" height="160"></canvas></div>
+      <div class="card"><div class="section-title"><h2>QA Wise CSAT</h2><span class="pill">Dynamic</span></div><canvas id="qaChart" height="160"></canvas></div>
     </section>
 
     <section class="card">
       <div class="section-title"><h2>Agent Details</h2><span class="pill" id="rowCount">0 rows</span></div>
-      <div class="table-wrap"><table><thead><tr><th>Rank</th><th>Network ID</th><th>Agent</th><th>TL</th><th>QA</th><th>Yes</th><th>No</th><th>Total</th><th>CFS%</th><th>Gap</th><th>Progress</th></tr></thead><tbody id="agentRows"></tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>Rank</th><th>Network ID</th><th>Agent</th><th>TL</th><th>QA</th><th>Positive</th><th>Negative</th><th>Total</th><th>CSAT%</th><th>Gap</th><th>Progress</th></tr></thead><tbody id="agentRows"></tbody></table></div>
     </section>
   </section>
 
   <section id="dateView" class="hidden">
     <section class="grid two">
-      <div class="card"><div class="section-title"><h2>Date Wise CFS Trend</h2><span class="pill">Daily score</span></div><canvas id="dateTrendChart" height="165"></canvas></div>
-      <div class="card"><div class="section-title"><h2>Date Wise Volume</h2><span class="pill">Yes / No</span></div><canvas id="dateVolumeChart" height="165"></canvas></div>
+      <div class="card"><div class="section-title"><h2>Date Wise CSAT Trend</h2><span class="pill">Daily</span></div><canvas id="dateTrendChart" height="165"></canvas></div>
+      <div class="card"><div class="section-title"><h2>Date Wise Volume</h2><span class="pill">Positive / Negative</span></div><canvas id="dateVolumeChart" height="165"></canvas></div>
     </section>
     <section class="card">
       <div class="section-title"><h2>Date Wise Data</h2><span class="pill" id="dateRowCount">0 days</span></div>
-      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Yes</th><th>No</th><th>Total</th><th>CFS%</th><th>Gap</th><th>Required RR</th><th>Comment</th></tr></thead><tbody id="dateRows"></tbody></table></div>
+      <div class="table-wrap"><table><thead><tr><th>Date</th><th>Positive</th><th>Negative</th><th>Total</th><th>CSAT%</th><th>Gap</th><th>Required RR</th><th>Comment</th></tr></thead><tbody id="dateRows"></tbody></table></div>
     </section>
   </section>
 
-  <div class="footer">Built with HTML, CSS, JavaScript, Chart.js and Google Sheets raw CSV export.</div>
+  <div class="footer">Live dashboard built with HTML, CSS, JavaScript, Chart.js and Google Sheets CSV.</div>
 </main>
 
 <script>
 const SHEET_ID = "19cFrK8XV_vua3YUht46TWH4ki_nTZ2S-3fpbo66zRXI";
 const RAW_SHEET_NAME = "NPS Raw";
-const CSV_URL = `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(RAW_SHEET_NAME)}`;
+const TARGET_SHEET_NAME = "CSAT Target";
 const AUTO_REFRESH_MS = 30 * 60 * 1000;
+const csvUrl = sheet => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
 
-let raw = [], clean = [], filtered = [], agg = {}, charts = {}, currentTable = "agent";
-const $ = id => document.getElementById(id);
-const norm = s => String(s ?? "").toLowerCase().replace(/[^a-z0-9]+/g, "").trim();
-const text = v => String(v ?? "").trim();
-const num = v => { const n = parseFloat(String(v ?? "").replace(/[%,$\s]/g,"")); return Number.isFinite(n) ? n : 0; };
-const fmt = n => Number(n || 0).toLocaleString("en-US");
-const pct = (yes,total) => total ? yes / total * 100 : 0;
-const fmtPct = n => `${(Number(n)||0).toFixed(2)}%`;
-const target = () => Math.max(0, Math.min(100, num($("targetInput").value) || 93));
+let rawRows=[], targetRows=[], clean=[], filtered=[], agg={}, charts={}, currentTable="agent", targetMap={};
+const $=id=>document.getElementById(id);
+const norm=s=>String(s??"").toLowerCase().replace(/[^a-z0-9]+/g,"").trim();
+const txt=v=>String(v??"").trim();
+const num=v=>{const n=parseFloat(String(v??"").replace(/[%,$\s]/g,""));return Number.isFinite(n)?n:0};
+const fmt=n=>Number(n||0).toLocaleString("en-US");
+const pct=(p,t)=>t?p/t*100:0;
+const fmtPct=n=>`${(Number(n)||0).toFixed(2)}%`;
 
 function parseCSV(str){const rows=[];let row=[],cell="",q=false;for(let i=0;i<str.length;i++){const c=str[i],n=str[i+1];if(c==='"'&&q&&n==='"'){cell+='"';i++}else if(c==='"')q=!q;else if(c===','&&!q){row.push(cell);cell=""}else if((c==='\n'||c==='\r')&&!q){if(c==='\r'&&n==='\n')i++;row.push(cell);if(row.some(x=>String(x).trim()!==""))rows.push(row);row=[];cell=""}else cell+=c}if(cell.length||row.length){row.push(cell);rows.push(row)}return rows}
-function parseDate(v){
-  if(!v) return null; const s=String(v).trim();
-  let d = new Date(s); if(!isNaN(d)) return d;
-  const m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/); if(m){let a=+m[1],b=+m[2],y=+m[3]; if(y<100)y+=2000; d=new Date(y,b-1,a); if(!isNaN(d))return d;}
-  return null;
-}
-function monthKey(d){return d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}` : "Unknown"}
+function parseDate(v){if(!v)return null;const s=String(v).trim();let d=new Date(s);if(!isNaN(d))return d;const m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);if(m){let a=+m[1],b=+m[2],y=+m[3];if(y<100)y+=2000;d=new Date(y,b-1,a);if(!isNaN(d))return d}return null}
+function monthKey(d){return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`:"Unknown"}
+function dayKey(d){return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`:"Unknown"}
 function monthLabel(key){if(key==="all")return"All";if(key==="Unknown")return"Unknown";const [y,m]=key.split("-").map(Number);return new Date(y,m-1,1).toLocaleString("en-US",{month:"short",year:"numeric"})}
-function dayKey(d){return d ? `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}` : "Unknown"}
+function findHeader(rows){let best=0,bestScore=-1;rows.slice(0,30).forEach((r,i)=>{const sc=r.reduce((s,c)=>s+(/date|month|agent|name|network|employee|tl|team|qa|auditor|positive|total|csat|target|count/i.test(c)?1:0),0);if(sc>bestScore){bestScore=sc;best=i}});return best}
+function colIndex(headers,patterns){const h=headers.map(norm);for(const p of patterns){const pp=norm(p);let i=h.findIndex(x=>x===pp);if(i>=0)return i;i=h.findIndex(x=>x.includes(pp)||pp.includes(x));if(i>=0)return i}return -1}
+function firstValue(r,idx){return idx>=0?txt(r[idx]):""}
 
-function findHeader(rows){
-  const score = r => r.reduce((s,c)=>s + (/date|time|agent|network|employee|tl|team|qa|auditor|nps|cfs|result|feedback|status|response|csat|dsat/i.test(c)?1:0),0);
-  let best=0,bestScore=-1; rows.slice(0,25).forEach((r,i)=>{const sc=score(r); if(sc>bestScore){bestScore=sc;best=i}}); return best;
+function loadTargets(rows){
+  targetMap={};
+  if(!rows.length)return;
+  const h=findHeader(rows), headers=rows[h].map((x,i)=>txt(x)||`Column ${i+1}`), data=rows.slice(h+1);
+  const monthIdx=colIndex(headers,["Month","CSAT Month","Target Month","Period"]);
+  const targetIdx=colIndex(headers,["CSAT Target","Target","CFS Target","Target %","CSAT"]);
+  data.forEach(r=>{
+    const rawM=firstValue(r,monthIdx), t=num(r[targetIdx]);
+    if(!t)return;
+    let key="all";
+    const d=parseDate(rawM);
+    if(d) key=monthKey(d);
+    else {
+      const m=rawM.match(/([A-Za-z]{3,9})[\s\-']*(\d{2,4})/);
+      if(m){const d2=new Date(`${m[1]} 1, ${+m[2]<100?2000+ +m[2]:+m[2]}`);if(!isNaN(d2))key=monthKey(d2)}
+    }
+    targetMap[key]=t;
+  });
 }
-function colIndex(headers, patterns){
-  const h=headers.map(norm); for(const p of patterns){const pi=norm(p); const exact=h.findIndex(x=>x===pi); if(exact>=0)return exact; const incl=h.findIndex(x=>x.includes(pi)||pi.includes(x)); if(incl>=0)return incl;} return -1;
-}
-function inferResult(obj, headers){
-  const likely = ["result","cfs","csat","dsat","nps","status","score","feedback","response","customerfeedback","category"];
-  const values=[];
-  headers.forEach(h=>{ if(likely.some(k=>norm(h).includes(k))) values.push(obj[h]); });
-  values.push(...Object.values(obj));
-  const joined = values.map(v=>String(v??"").toLowerCase()).join(" | ");
-  if(/\b(no|dsat|detractor|negative|bad|0|fail|not satisfied)\b/.test(joined)) return "No";
-  if(/\b(yes|csat|promoter|positive|good|1|pass|satisfied)\b/.test(joined)) return "Yes";
-  return "Unknown";
-}
+function currentTarget(){const m=$("monthSelect").value;const t=targetMap[m]||targetMap.all||num($("targetInput").value)||93;return Math.max(0,Math.min(100,t))}
+function updateTargetUi(){const t=currentTarget();$("targetInput").value=t;$("targetKpi").textContent=fmtPct(t);$("targetSource").textContent=(targetMap[$("monthSelect").value]||targetMap.all)?"CSAT Target sheet":"Fallback input"}
+
 function prepareRows(rows){
-  const hRow=findHeader(rows), headers=rows[hRow].map((h,i)=>text(h)||`Column ${i+1}`), data=rows.slice(hRow+1);
+  const h=findHeader(rows), headers=rows[h].map((x,i)=>txt(x)||`Column ${i+1}`), data=rows.slice(h+1);
   const idx={
-    date: colIndex(headers,["Date","Created Date","Audit Date","Submission Date","Response Date","Timestamp","Time"]),
-    agent: colIndex(headers,["Name","Agent Name","Employee Name","Advisor Name","User Name"]),
-    id: colIndex(headers,["Network ID","Login ID","Employee ID","Agent ID","User ID","ID"]),
-    tl: colIndex(headers,["TL","TL Name","Team Lead","Supervisor","Leader"]),
-    qa: colIndex(headers,["QA","QA Name","Auditor","Evaluator","Audit By","Checked By"])
+    date:colIndex(headers,["Date","Created Date","Audit Date","Submission Date","Response Date","Timestamp","Time"]),
+    agent:colIndex(headers,["Agent Name","Agent","Name","Employee Name","Advisor Name","Advisor","User Name","CSR Name"]),
+    id:colIndex(headers,["Network ID","Login ID","Employee ID","Agent ID","User ID","ID","Employee Code"]),
+    tl:colIndex(headers,["TL Name","TL","Team Lead","Team Leader","Supervisor","Leader","Manager"]),
+    qa:colIndex(headers,["QA Name","QA","Auditor","Evaluator","Audit By","Checked By","Quality Analyst"]),
+    positive:colIndex(headers,["Positive Count","Positive","Positive_count","CSAT Count","Satisfied Count","Promoter Count","Yes Count"]),
+    total:colIndex(headers,["Total Count","Total","Total_count","Total Response","Response Count","Survey Count","Count"]),
+    negative:colIndex(headers,["Negative Count","Negative","No Count","DSAT Count","Detractor Count"])
   };
   return data.map(r=>{
-    const obj={}; headers.forEach((h,i)=>obj[h]=r[i]??"");
-    const d=parseDate(r[idx.date]); const result=inferResult(obj,headers);
-    return {date:d,dateKey:dayKey(d),month:monthKey(d),agent:text(r[idx.agent])||"Unknown Agent",id:text(r[idx.id])||"-",tl:text(r[idx.tl])||"Unknown TL",qa:text(r[idx.qa])||"Unknown QA",result,raw:obj};
-  }).filter(x=>x.result==="Yes"||x.result==="No");
+    const positive=idx.positive>=0?num(r[idx.positive]):0;
+    let total=idx.total>=0?num(r[idx.total]):0;
+    const negGiven=idx.negative>=0?num(r[idx.negative]):0;
+    if(!total&&(positive||negGiven))total=positive+negGiven;
+    if(!total)return null;
+    const d=parseDate(firstValue(r,idx.date));
+    return {date:d,dateKey:dayKey(d),month:monthKey(d),agent:firstValue(r,idx.agent)||"Unknown Agent",id:firstValue(r,idx.id)||"-",tl:firstValue(r,idx.tl)||"Unknown TL",qa:firstValue(r,idx.qa)||"Unknown QA",positive,total,negative:Math.max(0,total-positive),raw:r};
+  }).filter(Boolean);
 }
-function addAgg(map,key,row){
-  if(!map[key]) map[key]={key,yes:0,no:0,total:0,items:[],tlSet:new Set(),qaSet:new Set(),idSet:new Set()};
-  if(row.result==="Yes")map[key].yes++; else map[key].no++; map[key].total++; map[key].items.push(row); map[key].tlSet.add(row.tl); map[key].qaSet.add(row.qa); map[key].idSet.add(row.id); return map[key];
+function addAgg(map,key,row){if(!map[key])map[key]={key,positive:0,negative:0,total:0,items:[],tlSet:new Set(),qaSet:new Set(),idSet:new Set()};map[key].positive+=row.positive;map[key].total+=row.total;map[key].negative+=row.negative;map[key].items.push(row);map[key].tlSet.add(row.tl);map[key].qaSet.add(row.qa);map[key].idSet.add(row.id);return map[key]}
+function summarize(rows){const agents={},tls={},qas={},dates={};let positive=0,total=0,negative=0;rows.forEach(r=>{positive+=r.positive;total+=r.total;negative+=r.negative;addAgg(agents,`${r.id}||${r.agent}`,r);addAgg(tls,r.tl,r);addAgg(qas,r.qa,r);addAgg(dates,r.dateKey,r)});const fin=o=>Object.values(o).map(x=>({...x,csat:pct(x.positive,x.total),tl:[...x.tlSet].join(", "),qa:[...x.qaSet].join(", "),id:[...x.idSet][0]||"-"}));return{positive,negative,total,csat:pct(positive,total),agents:fin(agents),tls:fin(tls),qas:fin(qas),dates:fin(dates).sort((a,b)=>a.key.localeCompare(b.key))}}
+function fillSelects(){
+  const months=[...new Set(clean.map(r=>r.month))].filter(Boolean).sort();const curM=$("monthSelect").value;$("monthSelect").innerHTML='<option value="all">All months</option>'+months.map(m=>`<option value="${m}">${monthLabel(m)}</option>`).join("");$("monthSelect").value=months.includes(curM)?curM:(months[months.length-1]||"all");
+  const tls=[...new Set(clean.map(r=>r.tl))].filter(Boolean).sort();const curTl=$("tlFilter").value;$("tlFilter").innerHTML='<option value="all">All TL</option>'+tls.map(x=>`<option value="${x}">${x}</option>`).join("");$("tlFilter").value=tls.includes(curTl)?curTl:"all";
+  const qas=[...new Set(clean.map(r=>r.qa))].filter(Boolean).sort();const curQa=$("qaFilter").value;$("qaFilter").innerHTML='<option value="all">All QA</option>'+qas.map(x=>`<option value="${x}">${x}</option>`).join("");$("qaFilter").value=qas.includes(curQa)?curQa:"all";
 }
-function summarize(rows){
-  const agents={}, tls={}, qas={}, dates={}; let yes=0,no=0;
-  rows.forEach(r=>{ if(r.result==="Yes")yes++; else no++; addAgg(agents,`${r.id}||${r.agent}`,r); addAgg(tls,r.tl,r); addAgg(qas,r.qa,r); addAgg(dates,r.dateKey,r); });
-  const finalize = o => Object.values(o).map(x=>({...x,cfs:pct(x.yes,x.total),tl:[...x.tlSet].join(", "),qa:[...x.qaSet].join(", "),id:[...x.idSet][0]||"-"}));
-  return {yes,no,total:yes+no,cfs:pct(yes,yes+no),agents:finalize(agents),tls:finalize(tls),qas:finalize(qas),dates:finalize(dates).sort((a,b)=>a.key.localeCompare(b.key))};
-}
-function fillMonths(){
-  const months=[...new Set(clean.map(r=>r.month))].filter(Boolean).sort(); const sel=$("monthSelect"), cur=sel.value;
-  sel.innerHTML='<option value="all">All months</option>'+months.map(m=>`<option value="${m}">${monthLabel(m)}</option>`).join("");
-  if(months.includes(cur)) sel.value=cur; else sel.value=months[months.length-1] || "all";
-}
-function applyFilters(){
-  const m=$("monthSelect").value; filtered=clean.filter(r=>m==="all"||r.month===m); agg=summarize(filtered); $("selectedMonthText").textContent=monthLabel(m); renderAll();
-}
-function remainingDaysInSelection(){
-  const m=$("monthSelect").value; if(m==="all"||m==="Unknown")return 0; const [y,mo]=m.split("-").map(Number); const today=new Date(); const end=new Date(y,mo,0); const lastData=agg.dates.length?parseDate(agg.dates[agg.dates.length-1].key):today; const from = lastData && lastData < end ? lastData : today; return Math.max(0, Math.ceil((end-from)/(1000*60*60*24))); }
-function requiredYesToRecover(yes,total,t){ const T=t/100; if(!total||pct(yes,total)>=t)return 0; return Math.ceil(((T*total)-yes)/(1-T)); }
-function requiredRR(yes,total,t){
-  const daysDone=Math.max(1,agg.dates.filter(d=>d.key!=="Unknown").length); const avgDaily=total/daysDone; const remDays=remainingDaysInSelection(); const remVol=Math.round(avgDaily*remDays); if(!remVol)return requiredYesToRecover(yes,total,t)?100:0; const finalVol=total+remVol; const need=(t/100*finalVol)-yes; return Math.max(0,Math.min(100,need/remVol*100));
-}
-function projectedEOM(yes,total){ const daysDone=Math.max(1,agg.dates.filter(d=>d.key!=="Unknown").length); const remDays=remainingDaysInSelection(); if(!remDays)return pct(yes,total); const avgYes=yes/daysDone, avgTotal=total/daysDone; return pct(yes+avgYes*remDays,total+avgTotal*remDays); }
-function destroy(id){if(charts[id])charts[id].destroy()}
-function draw(id,cfg){destroy(id);charts[id]=new Chart($(id),cfg)}
-const chartOptions = (min=0,max=100)=>({responsive:true,plugins:{legend:{labels:{color:"#cbd5e1"}},datalabels:{color:"#e5e7eb",anchor:"end",align:"top",formatter:v=>Number(v).toFixed(1)+"%",font:{size:10}}},scales:{x:{ticks:{color:"#94a3b8"},grid:{color:"rgba(148,163,184,.08)"}},y:{min,max,ticks:{color:"#94a3b8",callback:v=>v+"%"},grid:{color:"rgba(148,163,184,.08)"}}}});
-function renderKpis(){
-  const t=target(), rr=requiredRR(agg.yes,agg.total,t), eom=projectedEOM(agg.yes,agg.total), req=requiredYesToRecover(agg.yes,agg.total,t);
-  $("totalYes").textContent=fmt(agg.yes); $("totalNo").textContent=fmt(agg.no); $("grandTotal").textContent=fmt(agg.total); $("cfsPct").textContent=fmtPct(agg.cfs); $("cfsPct").className=`value ${agg.cfs>=t?"good":"bad"}`; $("targetKpi").textContent=fmtPct(t); $("requiredYes").textContent=fmt(req); $("requiredRR").textContent=fmtPct(rr); $("requiredRR").className=`value ${rr<=100&&agg.cfs<t?"warn":agg.cfs>=t?"good":"bad"}`; $("projectedEom").textContent=fmtPct(eom); $("projectedEom").className=`value ${eom>=t?"good":"bad"}`;
-  const best=[...agg.agents].sort((a,b)=>b.cfs-a.cfs)[0], risk=[...agg.agents].filter(a=>a.cfs<t).sort((a,b)=>a.cfs-b.cfs)[0], bestTL=[...agg.tls].sort((a,b)=>b.cfs-a.cfs)[0], riskQA=[...agg.qas].filter(a=>a.cfs<t).sort((a,b)=>a.cfs-b.cfs)[0];
-  $("insights").innerHTML=`<div class="insight"><strong>Best Agent: ${best?.key.split("||")[1]||"-"}</strong><span>${best?fmtPct(best.cfs)+" from "+fmt(best.total)+" responses":"No data"}</span></div><div class="insight"><strong>Lowest Risk: ${risk?.key.split("||")[1]||"-"}</strong><span>${risk?fmtPct(risk.cfs)+"; needs coaching/recovery":"All agents are above target"}</span></div><div class="insight"><strong>Best TL: ${bestTL?.key||"-"}</strong><span>${bestTL?fmtPct(bestTL.cfs)+" from "+fmt(bestTL.total)+" responses":"No TL data"}</span></div><div class="insight"><strong>QA Attention: ${riskQA?.key||"-"}</strong><span>${riskQA?fmtPct(riskQA.cfs)+" below target":"No QA risk found"}</span></div>`;
-}
-function filteredAgents(){ const q=$("searchInput").value.toLowerCase().trim(), f=$("statusFilter").value, t=target(); return agg.agents.filter(a=>{const hay=`${a.key} ${a.tl} ${a.qa}`.toLowerCase(); return (!q||hay.includes(q)) && (f==="all" || (f==="above"?a.cfs>=t:a.cfs<t));}).sort((a,b)=>b.cfs-a.cfs); }
-function renderTables(){
-  const t=target(), rows=filteredAgents(); $("rowCount").textContent=`${rows.length} rows`; $("agentRows").innerHTML=rows.map((a,i)=>{const [id,name]=a.key.split("||"),gap=a.cfs-t; return `<tr><td>${i+1}</td><td>${id}</td><td>${name}</td><td>${a.tl}</td><td>${a.qa}</td><td>${fmt(a.yes)}</td><td>${fmt(a.no)}</td><td>${fmt(a.total)}</td><td class="${a.cfs>=t?"good":"bad"}">${fmtPct(a.cfs)}</td><td class="${gap>=0?"good":"bad"}">${gap>=0?"+":""}${gap.toFixed(2)}%</td><td><div class="bar"><i style="width:${Math.max(0,Math.min(100,a.cfs))}%"></i></div></td></tr>`}).join("");
-  $("dateRowCount").textContent=`${agg.dates.length} days`; $("dateRows").innerHTML=agg.dates.map(d=>{const gap=d.cfs-t, rr=requiredRR(d.yes,d.total,t); const comment=d.cfs>=t?"On target":"Recovery needed"; return `<tr><td>${d.key}</td><td>${fmt(d.yes)}</td><td>${fmt(d.no)}</td><td>${fmt(d.total)}</td><td class="${d.cfs>=t?"good":"bad"}">${fmtPct(d.cfs)}</td><td class="${gap>=0?"good":"bad"}">${gap>=0?"+":""}${gap.toFixed(2)}%</td><td>${fmtPct(rr)}</td><td>${comment}</td></tr>`}).join("");
-}
-function renderCharts(){
-  const t=target(), agents=[...filteredAgents()].slice(0,24), tls=[...agg.tls].sort((a,b)=>b.total-a.total), qas=[...agg.qas].sort((a,b)=>b.total-a.total), dates=agg.dates.filter(d=>d.key!=="Unknown");
-  draw("agentChart",{type:"bar",data:{labels:agents.map(a=>a.key.split("||")[1].split(" ").slice(0,2).join(" ")),datasets:[{label:"CFS %",data:agents.map(a=>a.cfs),borderWidth:1},{label:"Target",data:agents.map(()=>t),type:"line",pointRadius:0,borderWidth:2}]},options:chartOptions(Math.max(0,t-15),100),plugins:[ChartDataLabels]});
-  draw("mixChart",{type:"doughnut",data:{labels:["Yes","No"],datasets:[{data:[agg.yes,agg.no],borderWidth:0}]},options:{cutout:"68%",plugins:{legend:{position:"bottom",labels:{color:"#cbd5e1"}},datalabels:{color:"#fff",formatter:(v,ctx)=>{const s=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return s?(v/s*100).toFixed(1)+"%":""}}}},plugins:[ChartDataLabels]});
-  draw("tlChart",{type:"bar",data:{labels:tls.map(x=>x.key),datasets:[{label:"TL CFS %",data:tls.map(x=>x.cfs),borderWidth:1},{label:"Target",data:tls.map(()=>t),type:"line",pointRadius:0,borderWidth:2}]},options:{...chartOptions(Math.max(0,t-15),100),indexAxis:"y"},plugins:[ChartDataLabels]});
-  draw("qaChart",{type:"bar",data:{labels:qas.map(x=>x.key),datasets:[{label:"QA CFS %",data:qas.map(x=>x.cfs),borderWidth:1},{label:"Target",data:qas.map(()=>t),type:"line",pointRadius:0,borderWidth:2}]},options:chartOptions(Math.max(0,t-15),100),plugins:[ChartDataLabels]});
-  draw("dateTrendChart",{type:"line",data:{labels:dates.map(d=>d.key),datasets:[{label:"Daily CFS %",data:dates.map(d=>d.cfs),tension:.32,borderWidth:2},{label:"Target",data:dates.map(()=>t),pointRadius:0,borderWidth:2}]},options:chartOptions(Math.max(0,t-15),100),plugins:[ChartDataLabels]});
-  draw("dateVolumeChart",{type:"bar",data:{labels:dates.map(d=>d.key),datasets:[{label:"Yes",data:dates.map(d=>d.yes),borderWidth:1},{label:"No",data:dates.map(d=>d.no),borderWidth:1}]},options:{responsive:true,plugins:{legend:{labels:{color:"#cbd5e1"}},datalabels:{display:false}},scales:{x:{ticks:{color:"#94a3b8"},grid:{color:"rgba(148,163,184,.08)"}},y:{ticks:{color:"#94a3b8"},grid:{color:"rgba(148,163,184,.08)"}}}},plugins:[ChartDataLabels]});
-}
-function renderAll(){ renderKpis(); renderTables(); renderCharts(); }
-async function loadData(){
-  $("errorBox").style.display="none";
-  try{ const res=await fetch(CSV_URL+`&cachebust=${Date.now()}`); if(!res.ok)throw new Error("Could not fetch NPS Raw CSV."); const csv=await res.text(); raw=parseCSV(csv); clean=prepareRows(raw); if(!clean.length)throw new Error("No valid Yes/No rows found. Check NPS Raw headers/result values or publish setting."); fillMonths(); applyFilters(); $("updatedAt").textContent=new Date().toLocaleString(); }
-  catch(e){ $("errorBox").textContent=e.message+" Tip: Google Sheet → File → Share → Publish to web, and confirm the tab name is exactly 'NPS Raw'."; $("errorBox").style.display="block"; }
-}
-function exportCSV(){ const rows = currentTable==="date" ? agg.dates.map(d=>[d.key,d.yes,d.no,d.total,d.cfs.toFixed(2),(d.cfs-target()).toFixed(2)]) : filteredAgents().map((a,i)=>{const [id,name]=a.key.split("||"); return [i+1,id,name,a.tl,a.qa,a.yes,a.no,a.total,a.cfs.toFixed(2),(a.cfs-target()).toFixed(2)]}); const header=currentTable==="date"?["Date","Yes","No","Total","CFS%","Gap"]:["Rank","Network ID","Agent","TL","QA","Yes","No","Total","CFS%","Gap"]; const csv=[header,...rows].map(r=>r.map(c=>`"${String(c).replaceAll('"','""')}"`).join(",")).join("\n"); const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"})); a.download=currentTable==="date"?"date-wise-cfs.csv":"agent-wise-cfs.csv"; a.click(); URL.revokeObjectURL(a.href); }
-$("monthSelect").addEventListener("change",applyFilters); $("targetInput").addEventListener("input",renderAll); $("searchInput").addEventListener("input",renderAll); $("statusFilter").addEventListener("change",renderAll); $("refreshBtn").addEventListener("click",loadData); $("exportBtn").addEventListener("click",exportCSV);
-document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.querySelectorAll("#dashboardView,#dateView").forEach(v=>v.classList.add("hidden"));$(btn.dataset.view).classList.remove("hidden");currentTable=btn.dataset.view==="dateView"?"date":"agent";renderCharts();}));
-loadData(); setInterval(loadData,AUTO_REFRESH_MS);
+function applyFilters(){const m=$("monthSelect").value,tl=$("tlFilter").value,qa=$("qaFilter").value;filtered=clean.filter(r=>(m==="all"||r.month===m)&&(tl==="all"||r.tl===tl)&&(qa==="all"||r.qa===qa));agg=summarize(filtered);$("selectedMonthText").textContent=monthLabel(m);updateTargetUi();renderAll()}
+function daysInSelection(){const m=$("monthSelect").value;if(m==="all"||m==="Unknown")return{done:Math.max(1,agg.dates.filter(d=>d.key!=="Unknown").length),remaining:0};const [y,mo]=m.split("-").map(Number);const end=new Date(y,mo,0);const valid=agg.dates.filter(d=>d.key!=="Unknown");const done=Math.max(1,valid.length);const last=valid.length?parseDate(valid[valid.length-1].key):new Date();const remaining=Math.max(0,Math.ceil((end-last)/(1000*60*60*24)));return{done,remaining}}
+function reqPositiveNow(pos,total,t){const T=t/100;if(!total||pct(pos,total)>=t)return 0;return Math.ceil(((T*total)-pos)/(1-T))}
+function reqRR(pos,total,t){const {done,remaining}=daysInSelection();const avgVol=total/done;const remVol=Math.round(avgVol*remaining);if(!remVol)return reqPositiveNow(pos,total,t)?100:0;const need=(t/100*(total+remVol))-pos;return Math.max(0,Math.min(100,need/remVol*100))}
+function projected(pos,total){const {done,remaining}=daysInSelection();if(!remaining)return pct(pos,total);return pct(pos+(pos/done*remaining),total+(total/done*remaining))}
+function destroy(id){if(charts[id])charts[id].destroy()}function draw(id,cfg){destroy(id);charts[id]=new Chart($(id),cfg)}
+const colors={grid:"rgba(100,116,139,.13)",tick:"#64748b"};
+const chartOptions=(min=0,max=100)=>({responsive:true,plugins:{legend:{labels:{color:"#334155"}},datalabels:{color:"#334155",anchor:"end",align:"top",formatter:v=>Number(v).toFixed(1)+"%",font:{size:10,weight:"700"}}},scales:{x:{ticks:{color:colors.tick},grid:{color:colors.grid}},y:{min,max,ticks:{color:colors.tick,callback:v=>v+"%"},grid:{color:colors.grid}}}});
+function agentRows(){const q=$("searchInput").value.toLowerCase().trim(),st=$("statusFilter").value,t=currentTarget();return agg.agents.filter(a=>{const hay=`${a.key} ${a.tl} ${a.qa}`.toLowerCase();return(!q||hay.includes(q))&&(st==="all"||(st==="above"?a.csat>=t:a.csat<t))}).sort((a,b)=>b.csat-a.csat)}
+function renderKpis(){const t=currentTarget(),rr=reqRR(agg.positive,agg.total,t),eom=projected(agg.positive,agg.total),req=reqPositiveNow(agg.positive,agg.total,t);$("totalPositive").textContent=fmt(agg.positive);$("totalNegative").textContent=fmt(agg.negative);$("grandTotal").textContent=fmt(agg.total);$("csatPct").textContent=fmtPct(agg.csat);$("csatPct").className=`value ${agg.csat>=t?"good":"bad"}`;$("targetKpi").textContent=fmtPct(t);$("requiredPositive").textContent=fmt(req);$("requiredRR").textContent=fmtPct(rr);$("requiredRR").className=`value ${agg.csat>=t?"good":rr<=100?"warn":"bad"}`;$("projectedEom").textContent=fmtPct(eom);$("projectedEom").className=`value ${eom>=t?"good":"bad"}`;const best=[...agg.agents].sort((a,b)=>b.csat-a.csat)[0],risk=[...agg.agents].filter(a=>a.csat<t).sort((a,b)=>a.csat-b.csat)[0],bestTL=[...agg.tls].sort((a,b)=>b.csat-a.csat)[0],riskQA=[...agg.qas].filter(a=>a.csat<t).sort((a,b)=>a.csat-b.csat)[0];$("insights").innerHTML=`<div class="insight"><strong>Best Agent: ${best?.key.split("||")[1]||"-"}</strong><span>${best?fmtPct(best.csat)+" from "+fmt(best.total)+" total":"No data"}</span></div><div class="insight"><strong>Recovery Focus: ${risk?.key.split("||")[1]||"-"}</strong><span>${risk?fmtPct(risk.csat)+"; gap "+(risk.csat-t).toFixed(2)+"%":"All agents on target"}</span></div><div class="insight"><strong>Best TL: ${bestTL?.key||"-"}</strong><span>${bestTL?fmtPct(bestTL.csat)+" from "+fmt(bestTL.total)+" total":"No TL data"}</span></div><div class="insight"><strong>QA Attention: ${riskQA?.key||"-"}</strong><span>${riskQA?fmtPct(riskQA.csat)+" below target":"No QA risk found"}</span></div>`}
+function renderTables(){const t=currentTarget(),rows=agentRows();$("rowCount").textContent=`${rows.length} rows`;$("agentRows").innerHTML=rows.map((a,i)=>{const [id,name]=a.key.split("||"),gap=a.csat-t;return`<tr><td>${i+1}</td><td>${id}</td><td>${name}</td><td>${a.tl}</td><td>${a.qa}</td><td>${fmt(a.positive)}</td><td>${fmt(a.negative)}</td><td>${fmt(a.total)}</td><td class="${a.csat>=t?"good":"bad"}">${fmtPct(a.csat)}</td><td class="${gap>=0?"good":"bad"}">${gap>=0?"+":""}${gap.toFixed(2)}%</td><td><div class="bar"><i style="width:${Math.max(0,Math.min(100,a.csat))}%"></i></div></td></tr>`}).join("");$("dateRowCount").textContent=`${agg.dates.length} days`;$("dateRows").innerHTML=agg.dates.map(d=>{const gap=d.csat-t,rr=reqRR(d.positive,d.total,t);return`<tr><td>${d.key}</td><td>${fmt(d.positive)}</td><td>${fmt(d.negative)}</td><td>${fmt(d.total)}</td><td class="${d.csat>=t?"good":"bad"}">${fmtPct(d.csat)}</td><td class="${gap>=0?"good":"bad"}">${gap>=0?"+":""}${gap.toFixed(2)}%</td><td>${fmtPct(rr)}</td><td>${d.csat>=t?"On target":"Recovery needed"}</td></tr>`}).join("")}
+function renderCharts(){const t=currentTarget(),agents=agentRows().slice(0,24),tls=[...agg.tls].sort((a,b)=>b.total-a.total),qas=[...agg.qas].sort((a,b)=>b.total-a.total),dates=agg.dates.filter(d=>d.key!=="Unknown");draw("agentChart",{type:"bar",data:{labels:agents.map(a=>a.key.split("||")[1].split(" ").slice(0,2).join(" ")),datasets:[{label:"CSAT %",data:agents.map(a=>a.csat),borderWidth:1,backgroundColor:"rgba(37,99,235,.72)"},{label:"Target",data:agents.map(()=>t),type:"line",pointRadius:0,borderWidth:2,borderColor:"#e11d48"}]},options:chartOptions(Math.max(0,t-15),100),plugins:[ChartDataLabels]});draw("mixChart",{type:"doughnut",data:{labels:["Positive","Negative"],datasets:[{data:[agg.positive,agg.negative],backgroundColor:["rgba(22,163,74,.82)","rgba(225,29,72,.78)"],borderWidth:0}]},options:{cutout:"68%",plugins:{legend:{position:"bottom",labels:{color:"#334155"}},datalabels:{color:"#fff",font:{weight:"900"},formatter:(v,ctx)=>{const s=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return s?(v/s*100).toFixed(1)+"%":""}}}},plugins:[ChartDataLabels]});draw("tlChart",{type:"bar",data:{labels:tls.map(x=>x.key),datasets:[{label:"TL CSAT %",data:tls.map(x=>x.csat),backgroundColor:"rgba(6,182,212,.72)",borderWidth:1},{label:"Target",data:tls.map(()=>t),type:"line",pointRadius:0,borderWidth:2,borderColor:"#e11d48"}]},options:{...chartOptions(Math.max(0,t-15),100),indexAxis:"y"},plugins:[ChartDataLabels]});draw("qaChart",{type:"bar",data:{labels:qas.map(x=>x.key),datasets:[{label:"QA CSAT %",data:qas.map(x=>x.csat),backgroundColor:"rgba(124,58,237,.72)",borderWidth:1},{label:"Target",data:qas.map(()=>t),type:"line",pointRadius:0,borderWidth:2,borderColor:"#e11d48"}]},options:chartOptions(Math.max(0,t-15),100),plugins:[ChartDataLabels]});draw("dateTrendChart",{type:"line",data:{labels:dates.map(d=>d.key),datasets:[{label:"Daily CSAT %",data:dates.map(d=>d.csat),tension:.35,borderWidth:3,borderColor:"#2563eb",backgroundColor:"rgba(37,99,235,.12)",fill:true},{label:"Target",data:dates.map(()=>t),pointRadius:0,borderWidth:2,borderColor:"#e11d48"}]},options:chartOptions(Math.max(0,t-15),100),plugins:[ChartDataLabels]});draw("dateVolumeChart",{type:"bar",data:{labels:dates.map(d=>d.key),datasets:[{label:"Positive",data:dates.map(d=>d.positive),backgroundColor:"rgba(22,163,74,.72)"},{label:"Negative",data:dates.map(d=>d.negative),backgroundColor:"rgba(225,29,72,.68)"}]},options:{responsive:true,plugins:{legend:{labels:{color:"#334155"}},datalabels:{display:false}},scales:{x:{ticks:{color:colors.tick},grid:{color:colors.grid}},y:{ticks:{color:colors.tick},grid:{color:colors.grid}}}},plugins:[ChartDataLabels]})}
+function renderAll(){renderKpis();renderTables();renderCharts()}
+async function fetchCsv(sheet){const r=await fetch(csvUrl(sheet)+`&cachebust=${Date.now()}`);if(!r.ok)throw new Error(`Could not fetch ${sheet}`);return parseCSV(await r.text())}
+async function loadData(){try{$("errorBox").style.display="none";rawRows=await fetchCsv(RAW_SHEET_NAME);try{targetRows=await fetchCsv(TARGET_SHEET_NAME);loadTargets(targetRows)}catch(e){targetMap={}}clean=prepareRows(rawRows);if(!clean.length)throw new Error("No Positive/Total rows found. Check columns: Positive Count and Total Count.");fillSelects();applyFilters();$("updatedAt").textContent=new Date().toLocaleString()}catch(e){$("errorBox").textContent=e.message+". Publish both NPS Raw and CSAT Target sheets, or keep the spreadsheet viewable with link.";$("errorBox").style.display="block"}}
+function exportCSV(){const rows=currentTable==="date"?agg.dates.map(d=>[d.key,d.positive,d.negative,d.total,d.csat.toFixed(2),(d.csat-currentTarget()).toFixed(2)]):agentRows().map((a,i)=>{const[id,name]=a.key.split("||");return[i+1,id,name,a.tl,a.qa,a.positive,a.negative,a.total,a.csat.toFixed(2),(a.csat-currentTarget()).toFixed(2)]});const header=currentTable==="date"?["Date","Positive","Negative","Total","CSAT%","Gap"]:["Rank","Network ID","Agent","TL","QA","Positive","Negative","Total","CSAT%","Gap"];const csv=[header,...rows].map(r=>r.map(c=>`"${String(c).replaceAll('"','""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=currentTable==="date"?"date-wise-csat.csv":"agent-wise-csat.csv";a.click();URL.revokeObjectURL(a.href)}
+["monthSelect","tlFilter","qaFilter"].forEach(id=>$(id).addEventListener("change",applyFilters));["targetInput","searchInput","statusFilter"].forEach(id=>$(id).addEventListener("input",renderAll));$("refreshBtn").addEventListener("click",loadData);$("exportBtn").addEventListener("click",exportCSV);document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.querySelectorAll("#dashboardView,#dateView").forEach(v=>v.classList.add("hidden"));$(btn.dataset.view).classList.remove("hidden");currentTable=btn.dataset.view==="dateView"?"date":"agent";renderCharts()}));
+loadData();setInterval(loadData,AUTO_REFRESH_MS);
 </script>
 </body>
 </html>
