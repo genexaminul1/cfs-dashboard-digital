@@ -21,12 +21,12 @@
     <div class="hero-main glass">
       <div class="eyebrow">Live Performance Control Room</div>
       <h1>CSAT / CFS Dashboard</h1>
-      <p class="sub">Dynamic dashboard powered by <b>NPS Raw</b>. CFS is calculated strictly as <b>Positive Count ÷ Total Count × 100</b>. Target comes from <b>CSAT Target</b> sheet when available.</p>
+      <p class="sub">Dynamic dashboard powered by <b>NPS Raw</b>. CSAT is calculated strictly as <b>Positive Count ÷ Total Count × 100</b>. Target is fixed at <b>91%</b>.</p>
       <div class="controls">
         <select id="monthSelect"><option value="all">All months</option></select>
         <select id="tlFilter"><option value="all">All TL</option></select>
         <select id="qaFilter"><option value="all">All QA</option></select>
-        <input id="targetInput" type="number" step="0.01" value="93" title="Fallback target if CSAT Target sheet is blank" />
+        <input id="targetInput" type="number" step="0.01" value="91" title="Fixed CSAT Target" readonly />
         <input id="searchInput" placeholder="Search agent / ID..." />
         <select id="statusFilter"><option value="all">All status</option><option value="above">Above target</option><option value="below">Below target</option></select>
         <button class="primary" id="refreshBtn">Refresh Live</button>
@@ -35,7 +35,7 @@
     </div>
     <div class="side glass">
       <div class="section-title"><h2>Live Status</h2><span class="live"><i class="pulse"></i>LIVE</span></div>
-      <p class="sub">Source: <b>Google Sheet → NPS Raw</b><br/>Target: <b id="targetSource">CSAT Target / fallback</b><br/>Selected month: <b id="selectedMonthText">All</b><br/>Last refresh: <b id="updatedAt">Loading...</b></p>
+      <p class="sub">Source: <b>Google Sheet → NPS Raw</b><br/>Target: <b id="targetSource">Fixed 91%</b><br/>Selected month: <b id="selectedMonthText">All</b><br/>Data updated till: <b id="dataTillDate">Loading...</b><br/>Last refresh: <b id="updatedAt">Loading...</b></p>
       <p class="small">Auto refresh every 30 minutes. Use filters to drill down by month, TL, QA and agent.</p>
     </div>
   </section>
@@ -60,6 +60,13 @@
     </section>
 
     <section class="grid insights" id="insights"></section>
+
+    <section class="grid kpis" style="grid-template-columns:repeat(4,minmax(0,1fr));">
+      <div class="card"><div class="label">Team Members</div><div class="value blue" id="teamMembers">-</div><div class="hint">Filtered TL / QA team</div></div>
+      <div class="card"><div class="label">Meet Count</div><div class="value good" id="meetCount">-</div><div class="hint">Members ≥ 91%</div></div>
+      <div class="card"><div class="label">Not Meet Count</div><div class="value bad" id="notMeetCount">-</div><div class="hint">Members below 91%</div></div>
+      <div class="card"><div class="label">Meet Ratio</div><div class="value" id="meetRatio">-</div><div class="hint">Meet / members</div></div>
+    </section>
 
     <section class="grid charts">
       <div class="card"><div class="section-title"><h2>Agent Wise CSAT</h2><span class="pill">Positive / Total</span></div><canvas id="agentChart" height="130"></canvas></div>
@@ -94,11 +101,11 @@
 <script>
 const SHEET_ID = "19cFrK8XV_vua3YUht46TWH4ki_nTZ2S-3fpbo66zRXI";
 const RAW_SHEET_NAME = "NPS Raw";
-const TARGET_SHEET_NAME = "CSAT Target";
+const FIXED_TARGET = 91;
 const AUTO_REFRESH_MS = 30 * 60 * 1000;
 const csvUrl = sheet => `https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&sheet=${encodeURIComponent(sheet)}`;
 
-let rawRows=[], targetRows=[], clean=[], filtered=[], agg={}, charts={}, currentTable="agent", targetMap={};
+let rawRows=[], clean=[], filtered=[], agg={}, charts={}, currentTable="agent";
 const $=id=>document.getElementById(id);
 const norm=s=>String(s??"").toLowerCase().replace(/[^a-z0-9]+/g,"").trim();
 const txt=v=>String(v??"").trim();
@@ -111,62 +118,18 @@ function parseCSV(str){const rows=[];let row=[],cell="",q=false;for(let i=0;i<st
 function parseDate(v){if(!v)return null;const s=String(v).trim();let d=new Date(s);if(!isNaN(d))return d;const m=s.match(/^(\d{1,2})[\/\-.](\d{1,2})[\/\-.](\d{2,4})$/);if(m){let a=+m[1],b=+m[2],y=+m[3];if(y<100)y+=2000;d=new Date(y,b-1,a);if(!isNaN(d))return d}return null}
 function monthKey(d){return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`:"Unknown"}
 function dayKey(d){return d?`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")}`:"Unknown"}
+function displayDate(key){if(!key||key==="Unknown")return "Unknown";const d=parseDate(key);return d?d.toLocaleDateString("en-GB",{day:"2-digit",month:"short",year:"numeric"}):key}
 function monthLabel(key){if(key==="all")return"All";if(key==="Unknown")return"Unknown";const [y,m]=key.split("-").map(Number);return new Date(y,m-1,1).toLocaleString("en-US",{month:"short",year:"numeric"})}
 function findHeader(rows){let best=0,bestScore=-1;rows.slice(0,30).forEach((r,i)=>{const sc=r.reduce((s,c)=>s+(/date|month|agent|name|network|employee|tl|team|qa|auditor|positive|total|csat|target|count/i.test(c)?1:0),0);if(sc>bestScore){bestScore=sc;best=i}});return best}
 function colIndex(headers,patterns){const h=headers.map(norm);for(const p of patterns){const pp=norm(p);let i=h.findIndex(x=>x===pp);if(i>=0)return i;i=h.findIndex(x=>x.includes(pp)||pp.includes(x));if(i>=0)return i}return -1}
 function firstValue(r,idx){return idx>=0?txt(r[idx]):""}
 
-function loadTargets(rows){
-  targetMap={};
-  if(!rows.length)return;
-  const h=findHeader(rows), headers=rows[h].map((x,i)=>txt(x)||`Column ${i+1}`), data=rows.slice(h+1);
-  let monthIdx=colIndex(headers,["Month","Target Month","CSAT Month","Period"]);
-  let targetIdx=colIndex(headers,["CSAT Target","Target %","Target Percentage","Target Percent","CFS Target","Target"]);
-
-  if(targetIdx < 0){
-    let bestIdx=-1,bestScore=-1;
-    headers.forEach((head,i)=>{
-      const name=norm(head);
-      const vals=data.map(r=>num(r[i])).filter(v=>v>0 && v<=100);
-      if(!vals.length)return;
-      const targetLike=vals.filter(v=>v>=70 && v<100).length;
-      const bad100=vals.filter(v=>v===100).length;
-      const nameBoost=/(target|csattarget|cfstarget)/.test(name)?5:0;
-      const score=targetLike*3 - bad100*2 + nameBoost;
-      if(score>bestScore){bestScore=score;bestIdx=i;}
-    });
-    targetIdx=bestIdx;
-  }
-
-  data.forEach(r=>{
-    let t=num(r[targetIdx]);
-    if(!t || t>100)return;
-    if(t===100 && !/target/i.test(headers[targetIdx]||""))return;
-    const rawM=monthIdx>=0?firstValue(r,monthIdx):"";
-    let key="all";
-    const d=parseDate(rawM);
-    if(d) key=monthKey(d);
-    else {
-      const m=rawM.match(/([A-Za-z]{3,9})[\s\-']*(\d{2,4})/);
-      if(m){const yr=+m[2]<100?2000+ +m[2]:+m[2];const d2=new Date(m[1]+" 1, "+yr);if(!isNaN(d2))key=monthKey(d2)}
-    }
-    targetMap[key]=t;
-  });
-}
-function currentTarget(){
-  const m=$("monthSelect").value;
-  const fallback=num($("targetInput").value)||93;
-  const t=targetMap[m]||targetMap.all||fallback;
-  const safeTarget=(t===100 && fallback<100)?fallback:t;
-  return Math.max(0,Math.min(100,safeTarget));
-}
+function currentTarget(){return FIXED_TARGET;}
 function updateTargetUi(){
   const t=currentTarget();
   $("targetInput").value=t;
   $("targetKpi").textContent=fmtPct(t);
-  const m=$("monthSelect").value;
-  const hasSheetTarget=Boolean(targetMap[m]||targetMap.all);
-  $("targetSource").textContent=hasSheetTarget?"CSAT Target sheet":"Fallback input";
+  $("targetSource").textContent="Fixed 91%";
 }
 
 function prepareRows(rows){
@@ -198,7 +161,7 @@ function fillSelects(){
   const tls=[...new Set(clean.map(r=>r.tl))].filter(Boolean).sort();const curTl=$("tlFilter").value;$("tlFilter").innerHTML='<option value="all">All TL</option>'+tls.map(x=>`<option value="${x}">${x}</option>`).join("");$("tlFilter").value=tls.includes(curTl)?curTl:"all";
   const qas=[...new Set(clean.map(r=>r.qa))].filter(Boolean).sort();const curQa=$("qaFilter").value;$("qaFilter").innerHTML='<option value="all">All QA</option>'+qas.map(x=>`<option value="${x}">${x}</option>`).join("");$("qaFilter").value=qas.includes(curQa)?curQa:"all";
 }
-function applyFilters(){const m=$("monthSelect").value,tl=$("tlFilter").value,qa=$("qaFilter").value;filtered=clean.filter(r=>(m==="all"||r.month===m)&&(tl==="all"||r.tl===tl)&&(qa==="all"||r.qa===qa));agg=summarize(filtered);$("selectedMonthText").textContent=monthLabel(m);updateTargetUi();renderAll()}
+function applyFilters(){const m=$("monthSelect").value,tl=$("tlFilter").value,qa=$("qaFilter").value;filtered=clean.filter(r=>(m==="all"||r.month===m)&&(tl==="all"||r.tl===tl)&&(qa==="all"||r.qa===qa));agg=summarize(filtered);$("selectedMonthText").textContent=monthLabel(m);const latest=filtered.map(r=>r.dateKey).filter(x=>x!=="Unknown").sort().pop();$("dataTillDate").textContent=latest?displayDate(latest):"No date found";updateTargetUi();renderAll()}
 function daysInSelection(){const m=$("monthSelect").value;if(m==="all"||m==="Unknown")return{done:Math.max(1,agg.dates.filter(d=>d.key!=="Unknown").length),remaining:0};const [y,mo]=m.split("-").map(Number);const end=new Date(y,mo,0);const valid=agg.dates.filter(d=>d.key!=="Unknown");const done=Math.max(1,valid.length);const last=valid.length?parseDate(valid[valid.length-1].key):new Date();const remaining=Math.max(0,Math.ceil((end-last)/(1000*60*60*24)));return{done,remaining}}
 function reqPositiveNow(pos,total,t){const T=t/100;if(!total||pct(pos,total)>=t)return 0;return Math.ceil(((T*total)-pos)/(1-T))}
 function reqRR(pos,total,t){const {done,remaining}=daysInSelection();const avgVol=total/done;const remVol=Math.round(avgVol*remaining);if(!remVol)return reqPositiveNow(pos,total,t)?100:0;const need=(t/100*(total+remVol))-pos;return Math.max(0,Math.min(100,need/remVol*100))}
@@ -207,14 +170,27 @@ function destroy(id){if(charts[id])charts[id].destroy()}function draw(id,cfg){de
 const colors={grid:"rgba(100,116,139,.13)",tick:"#64748b"};
 const chartOptions=(min=0,max=100)=>({responsive:true,plugins:{legend:{labels:{color:"#334155"}},datalabels:{color:"#334155",anchor:"end",align:"top",formatter:v=>Number(v).toFixed(1)+"%",font:{size:10,weight:"700"}}},scales:{x:{ticks:{color:colors.tick},grid:{color:colors.grid}},y:{min,max,ticks:{color:colors.tick,callback:v=>v+"%"},grid:{color:colors.grid}}}});
 function agentRows(){const q=$("searchInput").value.toLowerCase().trim(),st=$("statusFilter").value,t=currentTarget();return agg.agents.filter(a=>{const hay=`${a.key} ${a.tl} ${a.qa}`.toLowerCase();return(!q||hay.includes(q))&&(st==="all"||(st==="above"?a.csat>=t:a.csat<t))}).sort((a,b)=>b.csat-a.csat)}
-function renderKpis(){const t=currentTarget(),rr=reqRR(agg.positive,agg.total,t),eom=projected(agg.positive,agg.total),req=reqPositiveNow(agg.positive,agg.total,t);$("totalPositive").textContent=fmt(agg.positive);$("totalNegative").textContent=fmt(agg.negative);$("grandTotal").textContent=fmt(agg.total);$("csatPct").textContent=fmtPct(agg.csat);$("csatPct").className=`value ${agg.csat>=t?"good":"bad"}`;$("targetKpi").textContent=fmtPct(t);$("requiredPositive").textContent=fmt(req);$("requiredRR").textContent=fmtPct(rr);$("requiredRR").className=`value ${agg.csat>=t?"good":rr<=100?"warn":"bad"}`;$("projectedEom").textContent=fmtPct(eom);$("projectedEom").className=`value ${eom>=t?"good":"bad"}`;const best=[...agg.agents].sort((a,b)=>b.csat-a.csat)[0],risk=[...agg.agents].filter(a=>a.csat<t).sort((a,b)=>a.csat-b.csat)[0],bestTL=[...agg.tls].sort((a,b)=>b.csat-a.csat)[0],riskQA=[...agg.qas].filter(a=>a.csat<t).sort((a,b)=>a.csat-b.csat)[0];$("insights").innerHTML=`<div class="insight"><strong>Best Agent: ${best?.key.split("||")[1]||"-"}</strong><span>${best?fmtPct(best.csat)+" from "+fmt(best.total)+" total":"No data"}</span></div><div class="insight"><strong>Recovery Focus: ${risk?.key.split("||")[1]||"-"}</strong><span>${risk?fmtPct(risk.csat)+"; gap "+(risk.csat-t).toFixed(2)+"%":"All agents on target"}</span></div><div class="insight"><strong>Best TL: ${bestTL?.key||"-"}</strong><span>${bestTL?fmtPct(bestTL.csat)+" from "+fmt(bestTL.total)+" total":"No TL data"}</span></div><div class="insight"><strong>QA Attention: ${riskQA?.key||"-"}</strong><span>${riskQA?fmtPct(riskQA.csat)+" below target":"No QA risk found"}</span></div>`}
-function renderTables(){const t=currentTarget(),rows=agentRows();$("rowCount").textContent=`${rows.length} rows`;$("agentRows").innerHTML=rows.map((a,i)=>{const [id,name]=a.key.split("||"),gap=a.csat-t;return`<tr><td>${i+1}</td><td>${id}</td><td>${name}</td><td>${a.tl}</td><td>${a.qa}</td><td>${fmt(a.positive)}</td><td>${fmt(a.negative)}</td><td>${fmt(a.total)}</td><td class="${a.csat>=t?"good":"bad"}">${fmtPct(a.csat)}</td><td class="${gap>=0?"good":"bad"}">${gap>=0?"+":""}${gap.toFixed(2)}%</td><td><div class="bar"><i style="width:${Math.max(0,Math.min(100,a.csat))}%"></i></div></td></tr>`}).join("");$("dateRowCount").textContent=`${agg.dates.length} days`;$("dateRows").innerHTML=agg.dates.map(d=>{const gap=d.csat-t,rr=reqRR(d.positive,d.total,t);return`<tr><td>${d.key}</td><td>${fmt(d.positive)}</td><td>${fmt(d.negative)}</td><td>${fmt(d.total)}</td><td class="${d.csat>=t?"good":"bad"}">${fmtPct(d.csat)}</td><td class="${gap>=0?"good":"bad"}">${gap>=0?"+":""}${gap.toFixed(2)}%</td><td>${fmtPct(rr)}</td><td>${d.csat>=t?"On target":"Recovery needed"}</td></tr>`}).join("")}
+function renderKpis(){
+  const t=currentTarget(),rr=reqRR(agg.positive,agg.total,t),eom=projected(agg.positive,agg.total),req=reqPositiveNow(agg.positive,agg.total,t);
+  $("totalPositive").textContent=fmt(agg.positive);$("totalNegative").textContent=fmt(agg.negative);$("grandTotal").textContent=fmt(agg.total);$("csatPct").textContent=fmtPct(agg.csat);$("csatPct").className=`value ${agg.csat>=t?"good":"bad"}`;$("targetKpi").textContent=fmtPct(t);$("requiredPositive").textContent=fmt(req);$("requiredRR").textContent=fmtPct(rr);$("requiredRR").className=`value ${agg.csat>=t?"good":rr<=100?"warn":"bad"}`;$("projectedEom").textContent=fmtPct(eom);$("projectedEom").className=`value ${eom>=t?"good":"bad"}`;
+  const agents=[...agg.agents];
+  const meet=agents.filter(a=>a.csat>=t).length;
+  const notMeet=agents.filter(a=>a.csat<t).length;
+  $("teamMembers").textContent=fmt(agents.length);
+  $("meetCount").textContent=fmt(meet);
+  $("notMeetCount").textContent=fmt(notMeet);
+  $("meetRatio").textContent=agents.length?fmtPct(meet/agents.length*100):"0.00%";
+  $("meetRatio").className=`value ${agents.length&&meet/agents.length*100>=80?"good":"warn"}`;
+  const best=[...agg.agents].sort((a,b)=>b.csat-a.csat)[0],risk=[...agg.agents].filter(a=>a.csat<t).sort((a,b)=>a.csat-b.csat)[0],bestTL=[...agg.tls].sort((a,b)=>b.csat-a.csat)[0],bestQA=[...agg.qas].sort((a,b)=>b.csat-a.csat)[0];
+  $("insights").innerHTML=`<div class="insight"><strong>Best Agent: ${best?.key.split("||")[1]||"-"}</strong><span>${best?fmtPct(best.csat)+" from "+fmt(best.total)+" total":"No data"}</span></div><div class="insight"><strong>Recovery Focus: ${risk?.key.split("||")[1]||"-"}</strong><span>${risk?fmtPct(risk.csat)+"; gap "+(risk.csat-t).toFixed(2)+"%":"All agents on target"}</span></div><div class="insight"><strong>Best TL: ${bestTL?.key||"-"}</strong><span>${bestTL?fmtPct(bestTL.csat)+" from "+fmt(bestTL.total)+" total":"No TL data"}</span></div><div class="insight"><strong>Best QA: ${bestQA?.key||"-"}</strong><span>${bestQA?fmtPct(bestQA.csat)+" from "+fmt(bestQA.total)+" total":"No QA data"}</span></div>`
+}
+function renderTables(){const t=currentTarget(),rows=agentRows();$("rowCount").textContent=`${rows.length} rows`;$("agentRows").innerHTML=rows.map((a,i)=>{const [id,name]=a.key.split("||"),gap=a.csat-t;return`<tr><td>${i+1}</td><td>${id}</td><td>${name}</td><td>${a.tl}</td><td>${a.qa}</td><td>${fmt(a.positive)}</td><td>${fmt(a.negative)}</td><td>${fmt(a.total)}</td><td class="${a.csat>=t?"good":"bad"}">${fmtPct(a.csat)}</td><td class="${gap>=0?"good":"bad"}">${gap>=0?"+":""}${gap.toFixed(2)}%</td><td><div class="bar"><i style="width:${Math.max(0,Math.min(100,a.csat))}%"></i></div></td></tr>`}).join("");$("dateRowCount").textContent=`${agg.dates.length} days`;$("dateRows").innerHTML=agg.dates.map(d=>{const gap=d.csat-t,rr=reqRR(d.positive,d.total,t);return`<tr><td>${displayDate(d.key)}</td><td>${fmt(d.positive)}</td><td>${fmt(d.negative)}</td><td>${fmt(d.total)}</td><td class="${d.csat>=t?"good":"bad"}">${fmtPct(d.csat)}</td><td class="${gap>=0?"good":"bad"}">${gap>=0?"+":""}${gap.toFixed(2)}%</td><td>${fmtPct(rr)}</td><td>${d.csat>=t?"On target":"Recovery needed"}</td></tr>`}).join("")}
 function renderCharts(){const t=currentTarget(),agents=agentRows().slice(0,24),tls=[...agg.tls].filter(x=>x.total>0).sort((a,b)=>b.total-a.total),qas=[...agg.qas].filter(x=>x.total>0).sort((a,b)=>b.total-a.total),dates=agg.dates.filter(d=>d.key!=="Unknown");const allScores=[...agents.map(a=>a.csat),...tls.map(a=>a.csat),...qas.map(a=>a.csat),...dates.map(a=>a.csat),t].filter(Number.isFinite);const yMin=Math.max(0,Math.floor(Math.min(...allScores, t)-5));draw("agentChart",{type:"bar",data:{labels:agents.map(a=>a.key.split("||")[1].split(" ").slice(0,2).join(" ")),datasets:[{label:"CSAT %",data:agents.map(a=>a.csat),borderWidth:1,backgroundColor:"rgba(37,99,235,.72)"},{label:"Target",data:agents.map(()=>t),type:"line",pointRadius:0,borderWidth:2,borderColor:"#e11d48"}]},options:chartOptions(yMin,100),plugins:[ChartDataLabels]});draw("mixChart",{type:"doughnut",data:{labels:["Positive","Negative"],datasets:[{data:[agg.positive,agg.negative],backgroundColor:["rgba(22,163,74,.82)","rgba(225,29,72,.78)"],borderWidth:0}]},options:{cutout:"68%",plugins:{legend:{position:"bottom",labels:{color:"#334155"}},datalabels:{color:"#fff",font:{weight:"900"},formatter:(v,ctx)=>{const s=ctx.chart.data.datasets[0].data.reduce((a,b)=>a+b,0);return s?(v/s*100).toFixed(1)+"%":""}}}},plugins:[ChartDataLabels]});draw("tlChart",{type:"bar",data:{labels:tls.map(x=>x.key),datasets:[{label:"TL CSAT %",data:tls.map(x=>x.csat),backgroundColor:"rgba(6,182,212,.72)",borderWidth:1},{label:"Target",data:tls.map(()=>t),type:"line",pointRadius:0,borderWidth:2,borderColor:"#e11d48"}]},options:{...chartOptions(yMin,100),indexAxis:"y"},plugins:[ChartDataLabels]});draw("qaChart",{type:"bar",data:{labels:qas.map(x=>x.key),datasets:[{label:"QA CSAT %",data:qas.map(x=>x.csat),backgroundColor:"rgba(124,58,237,.72)",borderWidth:1},{label:"Target",data:qas.map(()=>t),type:"line",pointRadius:0,borderWidth:2,borderColor:"#e11d48"}]},options:chartOptions(yMin,100),plugins:[ChartDataLabels]});draw("dateTrendChart",{type:"line",data:{labels:dates.map(d=>d.key),datasets:[{label:"Daily CSAT %",data:dates.map(d=>d.csat),tension:.35,borderWidth:3,borderColor:"#2563eb",backgroundColor:"rgba(37,99,235,.12)",fill:true},{label:"Target",data:dates.map(()=>t),pointRadius:0,borderWidth:2,borderColor:"#e11d48"}]},options:chartOptions(yMin,100),plugins:[ChartDataLabels]});draw("dateVolumeChart",{type:"bar",data:{labels:dates.map(d=>d.key),datasets:[{label:"Positive",data:dates.map(d=>d.positive),backgroundColor:"rgba(22,163,74,.72)"},{label:"Negative",data:dates.map(d=>d.negative),backgroundColor:"rgba(225,29,72,.68)"}]},options:{responsive:true,plugins:{legend:{labels:{color:"#334155"}},datalabels:{display:false}},scales:{x:{ticks:{color:colors.tick},grid:{color:colors.grid}},y:{ticks:{color:colors.tick},grid:{color:colors.grid}}}},plugins:[ChartDataLabels]})}
 function renderAll(){renderKpis();renderTables();renderCharts()}
 async function fetchCsv(sheet){const r=await fetch(csvUrl(sheet)+`&cachebust=${Date.now()}`);if(!r.ok)throw new Error(`Could not fetch ${sheet}`);return parseCSV(await r.text())}
-async function loadData(){try{$("errorBox").style.display="none";rawRows=await fetchCsv(RAW_SHEET_NAME);try{targetRows=await fetchCsv(TARGET_SHEET_NAME);loadTargets(targetRows)}catch(e){targetMap={}}clean=prepareRows(rawRows);if(!clean.length)throw new Error("No Positive/Total rows found. Check columns: Positive Count and Total Count.");fillSelects();applyFilters();$("updatedAt").textContent=new Date().toLocaleString()}catch(e){$("errorBox").textContent=e.message+". Publish both NPS Raw and CSAT Target sheets, or keep the spreadsheet viewable with link.";$("errorBox").style.display="block"}}
+async function loadData(){try{$("errorBox").style.display="none";rawRows=await fetchCsv(RAW_SHEET_NAME);clean=prepareRows(rawRows);if(!clean.length)throw new Error("No Positive/Total rows found. Check columns: Positive Count and Total Count.");fillSelects();applyFilters();$("updatedAt").textContent=new Date().toLocaleString()}catch(e){$("errorBox").textContent=e.message+". Publish NPS Raw sheet, or keep the spreadsheet viewable with link.";$("errorBox").style.display="block"}}
 function exportCSV(){const rows=currentTable==="date"?agg.dates.map(d=>[d.key,d.positive,d.negative,d.total,d.csat.toFixed(2),(d.csat-currentTarget()).toFixed(2)]):agentRows().map((a,i)=>{const[id,name]=a.key.split("||");return[i+1,id,name,a.tl,a.qa,a.positive,a.negative,a.total,a.csat.toFixed(2),(a.csat-currentTarget()).toFixed(2)]});const header=currentTable==="date"?["Date","Positive","Negative","Total","CSAT%","Gap"]:["Rank","Network ID","Agent","TL","QA","Positive","Negative","Total","CSAT%","Gap"];const csv=[header,...rows].map(r=>r.map(c=>`"${String(c).replaceAll('"','""')}"`).join(",")).join("\n");const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv"}));a.download=currentTable==="date"?"date-wise-csat.csv":"agent-wise-csat.csv";a.click();URL.revokeObjectURL(a.href)}
-["monthSelect","tlFilter","qaFilter"].forEach(id=>$(id).addEventListener("change",applyFilters));["targetInput","searchInput","statusFilter"].forEach(id=>$(id).addEventListener("input",renderAll));$("refreshBtn").addEventListener("click",loadData);$("exportBtn").addEventListener("click",exportCSV);document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.querySelectorAll("#dashboardView,#dateView").forEach(v=>v.classList.add("hidden"));$(btn.dataset.view).classList.remove("hidden");currentTable=btn.dataset.view==="dateView"?"date":"agent";renderCharts()}));
+["monthSelect","tlFilter","qaFilter"].forEach(id=>$(id).addEventListener("change",applyFilters));["searchInput","statusFilter"].forEach(id=>$(id).addEventListener("input",renderAll));$("refreshBtn").addEventListener("click",loadData);$("exportBtn").addEventListener("click",exportCSV);document.querySelectorAll(".tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".tab").forEach(b=>b.classList.remove("active"));btn.classList.add("active");document.querySelectorAll("#dashboardView,#dateView").forEach(v=>v.classList.add("hidden"));$(btn.dataset.view).classList.remove("hidden");currentTable=btn.dataset.view==="dateView"?"date":"agent";renderCharts()}));
 loadData();setInterval(loadData,AUTO_REFRESH_MS);
 </script>
 </body>
